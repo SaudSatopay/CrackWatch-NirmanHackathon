@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #0A0A0B;
+  --color-concrete: #141416;
+  --color-slab: #1C1C20;
+  --color-crack: #252529;
+  --color-limestone: #E8E6E1;
+  --color-stone: #7A7872;
+  --color-fossil: #4A4944;
+  --color-fault: #FF6B2C;
+  --color-ember: #FF9142;
+  --color-magma: #FF4444;
+  --color-sensor: #00E5CC;
+  --color-scan: #00B4D8;
+  --color-stable: #4ADE80;
+  --color-gridline: #1E1E22;
+}
+
+* {
+  font-family: 'JetBrains Mono', monospace;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0A0A0B;
+  color: #E8E6E1;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0A0A0B; }
+::-webkit-scrollbar-thumb { background: #252529; }
+::-webkit-scrollbar-thumb:hover { background: #FF6B2C; }
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes fault-pulse {
+  0%, 100% { box-shadow: inset 2px 0 0 #FF6B2C; }
+  50% { box-shadow: inset 2px 0 0 #FF9142, 0 0 20px rgba(255,107,44,0.15); }
+}
+@keyframes data-flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96% { opacity: 0.6; }
+  98% { opacity: 0.85; }
+}
+@keyframes crack-grow {
+  from { stroke-dashoffset: 500; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes sweep {
+  0% { left: -20%; }
+  100% { left: 120%; }
+}
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.8); opacity: 1; }
+}
+@keyframes seismo-draw {
+  from { stroke-dashoffset: 2000; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes noise-shift {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-1px, 1px); }
+  20% { transform: translate(1px, -1px); }
+  30% { transform: translate(-1px, 0); }
+  40% { transform: translate(0, 1px); }
+  50% { transform: translate(1px, 0); }
+  60% { transform: translate(-1px, -1px); }
+  70% { transform: translate(0, 1px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(-1px, 0); }
+  100% { transform: translate(0, 0); }
+}
