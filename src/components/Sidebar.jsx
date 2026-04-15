@@ -17,6 +17,7 @@ import {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
   { icon: Upload, label: "New Scan", id: "scan" },
+  { icon: MapPin, label: "Reports Map", id: "govt-map" },
   { icon: Zap, label: "Repair Plan", id: "repair-plan" },
   { icon: BarChart3, label: "Analytics", id: "analytics" },
   { icon: History, label: "History", id: "history" },

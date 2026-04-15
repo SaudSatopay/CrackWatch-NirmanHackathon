@@ -45,7 +45,7 @@ export default function MapPage() {
   const [upvoted, setUpvoted] = useState(new Set());
 
   useEffect(() => {
-    fetch(`${API_URL}/public/reports/map`).then(r => r.json()).then(d => {
+    fetch(`${API_URL}/public/reports/map/detail`).then(r => r.json()).then(d => {
       if (d.reports?.length) setReports(prev => [...prev, ...d.reports]);
     }).catch(() => {});
   }, []);
@@ -163,6 +163,17 @@ export default function MapPage() {
               </div>
 
               <div className="px-4 pb-4">
+                {/* Photo */}
+                {selected.annotated_image && (
+                  <div className="rounded-xl overflow-hidden mb-3 h-36 bg-[#0e0e10]">
+                    <img
+                      src={`data:image/jpeg;base64,${selected.annotated_image}`}
+                      alt="Damage"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
                 {/* Type + Status */}
                 <div className="flex items-start justify-between mb-1">
                   <h3 className="text-base font-bold text-white" style={{ fontFamily: 'Space Grotesk' }}>{selected.damage_type}</h3>
@@ -178,6 +189,14 @@ export default function MapPage() {
                 {/* Description */}
                 {selected.description && (
                   <p className="text-[12px] text-white/60 mb-3 leading-relaxed">{selected.description}</p>
+                )}
+
+                {/* Cost estimate */}
+                {selected.cost_estimated > 0 && (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#ffa94d]/[0.06] mb-3">
+                    <span className="text-[11px] text-white/40">Est. Repair Cost</span>
+                    <span className="text-sm font-bold text-[#ffa94d]">₹{selected.cost_estimated?.toLocaleString('en-IN')}</span>
+                  </div>
                 )}
 
                 {/* Severity bar */}
