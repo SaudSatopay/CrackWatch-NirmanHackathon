@@ -302,3 +302,194 @@ async def get_detection_repair_plan(detection_id: str):
             plan = generate_repair_plan(r["detections"], location=location_name)
             return plan
     raise HTTPException(404, "Detection not found")
+
+
+# ============================================================
+# PUBLIC CITIZEN APP ENDPOINTS
+# ============================================================
+
+# In-memory store for citizen reports
+citizen_reports: list[dict] = []
+
+@app.post("/public/report")
+async def submit_citizen_report(
+    file: UploadFile = File(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    description: Optional[str] = Form(default=""),
+    reporter_name: Optional[str] = Form(default="Anonymous"),
+    location_name: Optional[str] = Form(default=""),
+):
+    """
+    PUBLIC: Citizens submit damage reports with photo + GPS location.
+    Auto-runs AI detection on the uploaded image.
+    """
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(400, "File must be an image")
+
+    image_bytes = await file.read()
+
+    # Run AI detection on citizen's photo
+    start_time = time.time()
+    detector = get_detector()
+    result = detector.detect_from_bytes(image_bytes, 0.20)
+    inference_time = round((time.time() - start_time) * 1000, 1)
+
+    scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
+    ranked = rank_priorities(scored)
+    stats = compute_overall_stats(ranked)
+
+    report_id = f"RPT-{str(uuid.uuid4())[:6].upper()}"
+    report = {
+        "id": report_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "reporter": reporter_name,
+        "description": description,
+        "location": {
+            "latitude": latitude,
+            "longitude": longitude,
+            "name": location_name,
+        },
+        "image_filename": file.filename,
+        "annotated_image": result["annotated_image"],
+        "detections": ranked,
+        "stats": stats,
+        "inference_time_ms": inference_time,
+        # Government tracking fields
+        "status": "submitted",
+        "status_history": [
+            {"status": "submitted", "time": datetime.now(timezone.utc).isoformat(), "note": "Citizen report received"}
+        ],
+        "assigned_to": None,
+        "fix_date": None,
+        "upvotes": 1,
+    }
+
+    citizen_reports.append(report)
+
+    # Also add to govt detection_store
+    detection_store.append({
+        "id": report_id,
+        "timestamp": report["timestamp"],
+        "filename": file.filename,
+        "image_width": result["image_width"],
+        "image_height": result["image_height"],
+        "detections": ranked,
+        "annotated_image": result["annotated_image"],
+        "stats": stats,
+        "inference_time_ms": inference_time,
+        "location": report["location"],
+        "source": "citizen_report",
+    })
+
+    return {
+        "id": report_id,
+        "status": "submitted",
+        "detections_count": len(ranked),
+        "severity_summary": {
+            "critical": stats["critical_count"],
+            "warning": stats["warning_count"],
+            "minor": stats["minor_count"],
+        },
+        "message": "Report submitted! Authorities have been notified.",
+    }
+
+
+@app.get("/public/reports/map")
+async def get_map_reports():
+    """PUBLIC: All reports for map display (lightweight, no images)."""
+    map_data = []
+    for r in citizen_reports:
+        loc = r["location"]
+        if loc["latitude"] and loc["longitude"]:
+            damage_type = r["detections"][0].get("display_name", "Damage") if r["detections"] else "Unknown"
+            map_data.append({
+                "id": r["id"],
+                "latitude": loc["latitude"],
+                "longitude": loc["longitude"],
+                "location_name": loc.get("name", ""),
+                "damage_type": damage_type,
+                "severity": r["stats"].get("avg_severity", 0),
+                "status": r["status"],
+                "timestamp": r["timestamp"],
+                "reporter": r["reporter"],
+                "description": r["description"],
+                "upvotes": r["upvotes"],
+                "defect_count": r["stats"]["total_defects"],
+            })
+    return {"reports": map_data, "total": len(map_data)}
+
+
+@app.get("/public/reports/{report_id}")
+async def get_citizen_report(report_id: str):
+    """PUBLIC: Full details of a specific report."""
+    for r in citizen_reports:
+        if r["id"] == report_id:
+            return r
+    raise HTTPException(404, "Report not found")
+
+
+@app.post("/public/reports/{report_id}/upvote")
+async def upvote_report(report_id: str):
+    """PUBLIC: Upvote a report to increase priority."""
+    for r in citizen_reports:
+        if r["id"] == report_id:
+            r["upvotes"] += 1
+            return {"id": report_id, "upvotes": r["upvotes"]}
+    raise HTTPException(404, "Report not found")
+
+
+@app.get("/public/stats")
+async def get_public_transparency_stats():
+    """PUBLIC: Government transparency & accountability stats."""
+    total = len(citizen_reports)
+    fixed = sum(1 for r in citizen_reports if r["status"] == "fixed")
+    in_progress = sum(1 for r in citizen_reports if r["status"] == "in_progress")
+    acknowledged = sum(1 for r in citizen_reports if r["status"] == "acknowledged")
+    pending = sum(1 for r in citizen_reports if r["status"] == "submitted")
+
+    addressed = fixed + in_progress + acknowledged
+    performance_score = round((addressed / total * 100) if total > 0 else 0, 1)
+
+    total_cost = 0
+    for r in citizen_reports:
+        for det in r.get("detections", []):
+            if "cost" in det:
+                total_cost += det["cost"].get("cost_estimated", 0)
+
+    return {
+        "total_reports": total,
+        "fixed": fixed,
+        "in_progress": in_progress,
+        "acknowledged": acknowledged,
+        "pending": pending,
+        "performance_score": performance_score,
+        "total_estimated_cost": total_cost,
+        "total_estimated_cost_formatted": f"₹{total_cost:,}",
+    }
+
+
+@app.patch("/admin/reports/{report_id}/status")
+async def update_report_status(
+    report_id: str,
+    status: str = Form(...),
+    note: str = Form(default=""),
+):
+    """ADMIN: Update report status (submitted → acknowledged → in_progress → fixed)."""
+    valid_statuses = ["submitted", "acknowledged", "in_progress", "fixed"]
+    if status not in valid_statuses:
+        raise HTTPException(400, f"Invalid status. Must be one of: {valid_statuses}")
+
+    for r in citizen_reports:
+        if r["id"] == report_id:
+            r["status"] = status
+            r["status_history"].append({
+                "status": status,
+                "time": datetime.now(timezone.utc).isoformat(),
+                "note": note,
+            })
+            if status == "fixed":
+                r["fix_date"] = datetime.now(timezone.utc).isoformat()
+            return {"id": report_id, "status": status, "message": f"Status updated to {status}"}
+
+    raise HTTPException(404, "Report not found")
