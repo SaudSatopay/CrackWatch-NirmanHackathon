@@ -420,6 +420,81 @@ async def get_map_reports():
     return {"reports": map_data, "total": len(map_data)}
 
 
+@app.get("/public/reports/map/detail")
+async def get_map_reports_with_images():
+    """PUBLIC: All reports WITH annotated images for detail view."""
+    map_data = []
+    for r in citizen_reports:
+        loc = r["location"]
+        if loc["latitude"] and loc["longitude"]:
+            damage_type = r["detections"][0].get("display_name", "Damage") if r["detections"] else "Unknown"
+            # Include cost from first detection
+            cost_est = 0
+            repair_method = ""
+            if r["detections"]:
+                c = r["detections"][0].get("cost", {})
+                cost_est = c.get("cost_estimated", 0)
+                repair_method = c.get("repair_method", "")
+
+            map_data.append({
+                "id": r["id"],
+                "latitude": loc["latitude"],
+                "longitude": loc["longitude"],
+                "location_name": loc.get("name", ""),
+                "damage_type": damage_type,
+                "severity": r["stats"].get("avg_severity", 0),
+                "status": r["status"],
+                "timestamp": r["timestamp"],
+                "reporter": r["reporter"],
+                "description": r["description"],
+                "upvotes": r["upvotes"],
+                "defect_count": r["stats"]["total_defects"],
+                "annotated_image": r.get("annotated_image", ""),
+                "cost_estimated": cost_est,
+                "repair_method": repair_method,
+                "status_history": r.get("status_history", []),
+            })
+    return {"reports": map_data, "total": len(map_data)}
+
+
+@app.get("/admin/reports/map")
+async def get_admin_map_reports():
+    """ADMIN: All reports with images + admin controls for government dashboard."""
+    map_data = []
+    for r in citizen_reports:
+        loc = r["location"]
+        if loc["latitude"] and loc["longitude"]:
+            damage_type = r["detections"][0].get("display_name", "Damage") if r["detections"] else "Unknown"
+            cost_est = 0
+            repair_method = ""
+            if r["detections"]:
+                c = r["detections"][0].get("cost", {})
+                cost_est = c.get("cost_estimated", 0)
+                repair_method = c.get("repair_method", "")
+
+            map_data.append({
+                "id": r["id"],
+                "latitude": loc["latitude"],
+                "longitude": loc["longitude"],
+                "location_name": loc.get("name", ""),
+                "damage_type": damage_type,
+                "severity": r["stats"].get("avg_severity", 0),
+                "status": r["status"],
+                "timestamp": r["timestamp"],
+                "reporter": r["reporter"],
+                "description": r["description"],
+                "upvotes": r["upvotes"],
+                "defect_count": r["stats"]["total_defects"],
+                "annotated_image": r.get("annotated_image", ""),
+                "cost_estimated": cost_est,
+                "repair_method": repair_method,
+                "status_history": r.get("status_history", []),
+                "assigned_to": r.get("assigned_to"),
+                "detections": r.get("detections", []),
+            })
+    return {"reports": map_data, "total": len(map_data)}
+
+
 @app.get("/public/reports/{report_id}")
 async def get_citizen_report(report_id: str):
     """PUBLIC: Full details of a specific report."""

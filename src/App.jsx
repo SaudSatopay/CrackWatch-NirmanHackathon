@@ -8,6 +8,7 @@ import AnalyticsChart from "@/components/AnalyticsChart";
 import RecentScans from "@/components/RecentScans";
 import HeroPage from "@/components/HeroPage";
 import RepairPlan from "@/components/RepairPlan";
+import GovtMap from "@/components/GovtMap";
 import {
   Bell,
   Search,
@@ -21,6 +22,7 @@ function Header({ activeTab }) {
   const titles = {
     dashboard: { title: "Command Center", sub: "Infrastructure monitoring & damage intelligence" },
     scan: { title: "New Scan", sub: "Upload & analyze structural damage" },
+    "govt-map": { title: "Reports Map", sub: "Citizen reports & admin controls" },
     "repair-plan": { title: "Repair Plan", sub: "Priority actions & cost estimation" },
     analytics: { title: "Analytics", sub: "Damage trends & pattern analysis" },
     history: { title: "Scan History", sub: "Past inspections & reports" },
@@ -161,7 +163,7 @@ function Dashboard({ activeTab, setActiveTab }) {
       {/* Main content */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header activeTab={activeTab} />
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className={`flex-1 overflow-y-auto ${activeTab === 'govt-map' ? '' : 'p-6'}`}>
           <AnimatePresence mode="wait">
             {activeTab === "dashboard" && <DashboardView key="dashboard" />}
             {activeTab === "scan" && (
@@ -177,6 +179,11 @@ function Dashboard({ activeTab, setActiveTab }) {
             {activeTab === "history" && (
               <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <RecentScans />
+              </motion.div>
+            )}
+            {activeTab === "govt-map" && (
+              <motion.div key="govt-map" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <GovtMap />
               </motion.div>
             )}
             {activeTab === "repair-plan" && (
