@@ -1,0 +1,5 @@
+test_*.jpg
+uploads/
+__pycache__/
+*.pyc
+yolov8n.pt
