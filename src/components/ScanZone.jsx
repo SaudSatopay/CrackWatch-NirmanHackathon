@@ -203,7 +203,7 @@ export default function ScanZone() {
         const blob = await resp.blob();
         formData.append('file', blob, 'demo.png');
       }
-      formData.append('confidence', '0.15');
+      formData.append('confidence', '0.25');
 
       const res = await fetch(`${API_URL}/detect`, {
         method: 'POST',

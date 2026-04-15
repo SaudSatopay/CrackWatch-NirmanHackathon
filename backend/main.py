@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 
 from inference import get_detector
 from severity import compute_severity, compute_overall_stats
+from cost_engine import estimate_cost, rank_priorities, generate_repair_plan, explain_severity
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -96,6 +97,13 @@ async def detect_damage(
     # Compute overall stats
     stats = compute_overall_stats(scored_detections)
 
+    # Rank priorities + cost estimation
+    ranked_detections = rank_priorities(scored_detections)
+
+    # Add explainability to each detection
+    for det in ranked_detections:
+        det["explanation"] = explain_severity(det)
+
     # Build detection record
     detection_id = str(uuid.uuid4())[:8]
     record = {
@@ -104,7 +112,7 @@ async def detect_damage(
         "filename": file.filename,
         "image_width": result["image_width"],
         "image_height": result["image_height"],
-        "detections": scored_detections,
+        "detections": ranked_detections,
         "annotated_image": result["annotated_image"],
         "stats": stats,
         "inference_time_ms": inference_time,
@@ -119,7 +127,7 @@ async def detect_damage(
     detection_store.append(record)
 
     # Generate alerts for critical detections
-    for det in scored_detections:
+    for det in ranked_detections:
         if det["severity_label"] == "critical":
             alert = {
                 "id": len(alert_store) + 1,
@@ -145,7 +153,7 @@ async def detect_damage(
 
     return JSONResponse(content={
         "id": detection_id,
-        "detections": scored_detections,
+        "detections": ranked_detections,
         "annotated_image": result["annotated_image"],
         "stats": stats,
         "inference_time_ms": inference_time,
@@ -255,3 +263,42 @@ async def detect_batch(
         })
 
     return {"results": results, "total_processed": len(results)}
+
+
+@app.get("/repair-plan")
+async def get_repair_plan():
+    """
+    Generate Today's Repair Plan — the 'What should I fix today?' feature.
+    Aggregates all detections, ranks by priority, estimates costs.
+    """
+    all_detections = []
+    for r in detection_store:
+        for det in r["detections"]:
+            det_copy = {**det}
+            det_copy["source_scan"] = r["id"]
+            det_copy["scan_time"] = r["timestamp"]
+            loc = r.get("location", {})
+            det_copy["location_name"] = loc.get("name") or r.get("filename", "Unknown")
+            all_detections.append(det_copy)
+
+    if not all_detections:
+        return {
+            "message": "No scans yet. Upload images to generate a repair plan.",
+            "summary": None,
+            "top_priorities": [],
+        }
+
+    plan = generate_repair_plan(all_detections, location="Survey Area")
+    return plan
+
+
+@app.get("/repair-plan/{detection_id}")
+async def get_detection_repair_plan(detection_id: str):
+    """Generate repair plan for a specific scan."""
+    for r in detection_store:
+        if r["id"] == detection_id:
+            loc = r.get("location", {})
+            location_name = loc.get("name") or r.get("filename", "Unknown")
+            plan = generate_repair_plan(r["detections"], location=location_name)
+            return plan
+    raise HTTPException(404, "Detection not found")
