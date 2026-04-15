@@ -18,7 +18,7 @@ MODEL_DIR = Path(__file__).parent / "model"
 
 # Roboflow API config
 ROBOFLOW_API_KEY = "***REMOVED***"
-ROBOFLOW_MODEL_URL = "https://detect.roboflow.com/test-dataset-yjjjr-gpw9n/1"
+ROBOFLOW_MODEL_URL = "https://detect.roboflow.com/test-dataset-yjjjr-gpw9n/2"
 
 # Class name mapping for RDD2022 dataset
 RDD_CLASSES = {
@@ -200,11 +200,70 @@ class DamageDetector:
                 print("[CRACKWATCH] Using Roboflow hosted model API")
 
     def detect(self, image: Image.Image, confidence_threshold: float = 0.25) -> dict:
-        """Run detection on a PIL Image."""
+        """Run detection on a PIL Image. Tries Roboflow first, falls back to CV."""
         if self.use_roboflow:
-            return self._detect_roboflow(image, confidence_threshold)
+            try:
+                result = self._detect_roboflow(image, confidence_threshold)
+            except Exception as e:
+                print(f"[CRACKWATCH] Roboflow API failed: {e}")
+                print("[CRACKWATCH] Falling back to OpenCV supplementary detection")
+                result = self._detect_cv_only(image)
+            # If Roboflow returned 0 detections (might be blocked), try local + CV
+            if result["detection_count"] == 0 and not self.local_model:
+                print("[CRACKWATCH] Roboflow returned 0 detections, running CV supplementary only")
+                try:
+                    cv_extras = cv_supplementary_detection(image)
+                    if cv_extras:
+                        for det in cv_extras:
+                            cls = det["class_name"]
+                            if cls in DAMAGE_SUBTYPES:
+                                det["category"] = DAMAGE_SUBTYPES[cls]["category"]
+                                det["risk"] = DAMAGE_SUBTYPES[cls]["risk"]
+                                det["repair"] = DAMAGE_SUBTYPES[cls]["repair"]
+                            else:
+                                det["category"] = cls.capitalize()
+                                det["risk"] = "Monitor and assess."
+                                det["repair"] = "Professional assessment recommended"
+                        annotated = draw_detections(image, cv_extras)
+                        buf = io.BytesIO()
+                        annotated.save(buf, format="JPEG", quality=85)
+                        result["annotated_image"] = base64.b64encode(buf.getvalue()).decode()
+                        result["detections"] = cv_extras
+                        result["detection_count"] = len(cv_extras)
+                except Exception as e:
+                    print(f"[CRACKWATCH] CV fallback error: {e}")
+            return result
         else:
             return self._detect_local(image, confidence_threshold)
+
+    def _detect_cv_only(self, image: Image.Image) -> dict:
+        """Fallback: OpenCV-only detection when Roboflow is unavailable."""
+        w, h = image.size
+        detections = cv_supplementary_detection(image)
+
+        for det in detections:
+            cls = det["class_name"]
+            if cls in DAMAGE_SUBTYPES:
+                det["category"] = DAMAGE_SUBTYPES[cls]["category"]
+                det["risk"] = DAMAGE_SUBTYPES[cls]["risk"]
+                det["repair"] = DAMAGE_SUBTYPES[cls]["repair"]
+            else:
+                det["category"] = cls.capitalize()
+                det["risk"] = "Monitor and assess during next inspection."
+                det["repair"] = "Professional assessment recommended"
+
+        annotated = draw_detections(image, detections)
+        buf = io.BytesIO()
+        annotated.save(buf, format="JPEG", quality=85)
+        annotated_b64 = base64.b64encode(buf.getvalue()).decode()
+
+        return {
+            "detections": detections,
+            "annotated_image": annotated_b64,
+            "image_width": w,
+            "image_height": h,
+            "detection_count": len(detections),
+        }
 
     def _detect_roboflow(self, image: Image.Image, confidence_threshold: float) -> dict:
         """Use Roboflow hosted inference API."""
