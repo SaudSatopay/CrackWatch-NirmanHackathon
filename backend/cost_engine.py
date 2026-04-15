@@ -49,6 +49,36 @@ IGNORE_MULTIPLIER = {
     "minor": 3.0,      # ₹1K → ₹3K in 6 months
     "warning": 4.0,     # ₹10K → ₹40K in 6 months
     "critical": 6.0,    # ₹40K → ₹240K in 6 months
+    "building_crack": {
+        "minor": {"min": 2000, "max": 8000, "method": "Epoxy injection", "time": "2-3 hours", "crew": 2},
+        "warning": {"min": 8000, "max": 30000, "method": "Structural patching + reinforcement", "time": "1-2 days", "crew": 4},
+        "critical": {"min": 30000, "max": 100000, "method": "Structural reinforcement + underpinning", "time": "3-7 days", "crew": 8},
+    },
+    "pipe_damage": {
+        "minor": {"min": 5000, "max": 15000, "method": "Pipe patch repair", "time": "2-4 hours", "crew": 3},
+        "warning": {"min": 15000, "max": 50000, "method": "Section replacement", "time": "1-2 days", "crew": 5},
+        "critical": {"min": 50000, "max": 200000, "method": "Full pipeline replacement", "time": "3-10 days", "crew": 8},
+    },
+    "Longitudinal Crack": {  # Map display names to costs too
+        "minor": {"min": 500, "max": 2000, "method": "Crack sealing", "time": "1-2 hours", "crew": 2},
+        "warning": {"min": 2000, "max": 8000, "method": "Routing and sealing", "time": "2-4 hours", "crew": 3},
+        "critical": {"min": 8000, "max": 25000, "method": "Full-depth patching", "time": "4-8 hours", "crew": 5},
+    },
+    "Transverse Crack": {
+        "minor": {"min": 800, "max": 3000, "method": "Crack filling", "time": "1-2 hours", "crew": 2},
+        "warning": {"min": 3000, "max": 12000, "method": "Partial-depth repair", "time": "3-5 hours", "crew": 4},
+        "critical": {"min": 12000, "max": 35000, "method": "Full-depth reclamation", "time": "6-10 hours", "crew": 6},
+    },
+    "Alligator Crack": {
+        "minor": {"min": 3000, "max": 10000, "method": "Surface seal coat", "time": "2-4 hours", "crew": 3},
+        "warning": {"min": 10000, "max": 40000, "method": "Mill and overlay", "time": "1-2 days", "crew": 6},
+        "critical": {"min": 40000, "max": 150000, "method": "Full-depth reclamation + overlay", "time": "2-5 days", "crew": 8},
+    },
+    "Potholes": {
+        "minor": {"min": 1000, "max": 3000, "method": "Throw-and-roll patch", "time": "30 min", "crew": 2},
+        "warning": {"min": 3000, "max": 10000, "method": "Semi-permanent patch", "time": "1-2 hours", "crew": 3},
+        "critical": {"min": 10000, "max": 30000, "method": "Full-depth repair", "time": "3-6 hours", "crew": 5},
+    },
 }
 
 URGENCY_SCORES = {

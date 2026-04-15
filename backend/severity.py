@@ -9,10 +9,16 @@ DAMAGE_WEIGHTS = {
     "spalling": 0.5,
     "corrosion": 0.6,
     "leak": 0.9,
-    "D00": 0.7,   # Longitudinal crack
-    "D10": 0.75,  # Transverse crack
-    "D20": 1.0,   # Alligator crack
-    "D40": 0.9,   # Pothole
+    "D00": 0.7,
+    "D10": 0.75,
+    "D20": 1.0,
+    "D40": 0.9,
+    "building_crack": 0.85,
+    "pipe_damage": 0.95,
+    "Longitudinal Crack": 0.7,
+    "Transverse Crack": 0.75,
+    "Alligator Crack": 1.0,
+    "Potholes": 0.9,
 }
 
 def compute_severity(detections: list, image_width: int, image_height: int) -> list:
