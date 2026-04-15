@@ -7,6 +7,7 @@ import ScanZone from "@/components/ScanZone";
 import AnalyticsChart from "@/components/AnalyticsChart";
 import RecentScans from "@/components/RecentScans";
 import HeroPage from "@/components/HeroPage";
+import RepairPlan from "@/components/RepairPlan";
 import {
   Bell,
   Search,
@@ -153,6 +154,11 @@ function Dashboard({ activeTab, setActiveTab }) {
             {activeTab === "history" && (
               <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <RecentScans />
+              </motion.div>
+            )}
+            {activeTab === "repair-plan" && (
+              <motion.div key="repair-plan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <RepairPlan />
               </motion.div>
             )}
             {activeTab === "settings" && (
