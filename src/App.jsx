@@ -30,10 +30,10 @@ function Header({ activeTab }) {
   const { title, sub } = titles[activeTab] || titles.dashboard;
 
   return (
-    <header className="flex items-center justify-between px-8 py-5 border-b border-zinc-800/30 bg-zinc-950/50 backdrop-blur-sm">
+    <header className="flex items-center justify-between px-8 py-5 bg-[#131315]/80 backdrop-blur-md">
       <div>
         <motion.h2
-          className="text-2xl font-extrabold text-white tracking-tight"
+          className="text-2xl font-extrabold text-[#e5e1e4] tracking-tight font-heading"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           key={title}
@@ -147,11 +147,12 @@ function PlaceholderView({ title, icon }) {
 
 function Dashboard({ activeTab, setActiveTab }) {
   return (
-    <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
-      {/* Ambient background effects */}
+    <div className="flex h-screen bg-[#131315] text-[#e5e1e4] overflow-hidden">
+      {/* Ambient background — Stitch "Sovereign Intelligence" */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/3 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/3 rounded-full blur-3xl" />
+        <div className="absolute top-[-10%] left-[15%] w-[500px] h-[500px] bg-[#4edea3]/[0.03] rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[10%] w-[400px] h-[400px] bg-[#5de6ff]/[0.03] rounded-full blur-[120px]" />
+        <div className="absolute top-[40%] right-[30%] w-[300px] h-[300px] bg-[#ffb95f]/[0.02] rounded-full blur-[100px]" />
       </div>
 
       {/* Sidebar */}
