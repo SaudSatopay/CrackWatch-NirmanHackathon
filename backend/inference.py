@@ -128,14 +128,36 @@ def cv_supplementary_detection(image: Image.Image) -> list:
                 "class_id": 12,
             })
 
-    return extra_detections[:5]  # Cap at 5 supplementary detections
+    # 4. Detect pipe breaks / dark holes (potential pipe fractures)
+    _, dark_mask = cv2.threshold(gray, 40, 255, cv2.THRESH_BINARY_INV)
+    dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_OPEN, np.ones((8, 8)))
+    contours, _ = cv2.findContours(dark_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if area > (w * h * 0.01) and area < (w * h * 0.15):
+            x, y, cw, ch = cv2.boundingRect(cnt)
+            # Check circularity — pipes tend to show circular/oval breaks
+            perimeter = cv2.arcLength(cnt, True)
+            circularity = 4 * 3.14159 * area / (perimeter * perimeter) if perimeter > 0 else 0
+            if circularity > 0.3:  # Somewhat circular
+                extra_detections.append({
+                    "bbox": [float(x), float(y), float(x + cw), float(y + ch)],
+                    "confidence": round(0.3 + circularity * 0.4, 3),
+                    "class_name": "pipe_damage",
+                    "display_name": "Pipeline Break / Damage",
+                    "class_id": 13,
+                })
+
+    return extra_detections[:6]
 
 
 ALL_SEVERITY_COLORS = {
     **SEVERITY_COLORS,
-    "spalling": (180, 130, 255),   # purple
-    "leak": (0, 150, 255),         # blue
-    "corrosion": (255, 165, 0),    # orange
+    "spalling": (180, 130, 255),        # purple
+    "leak": (0, 150, 255),              # blue
+    "corrosion": (255, 165, 0),         # orange
+    "building_crack": (255, 100, 100),  # salmon red
+    "pipe_damage": (100, 180, 255),     # light blue
 }
 
 
@@ -180,24 +202,31 @@ class DamageDetector:
         Uses Roboflow API for the trained crack model.
         Falls back to local YOLO if best.pt exists.
         """
-        self.use_roboflow = True
+        self.use_roboflow = False
         self.local_model = None
+        self.crack_model = None
+        from ultralytics import YOLO
 
-        # Check for local model first
-        if model_path and os.path.exists(model_path):
-            print(f"[CRACKWATCH] Loading local model: {model_path}")
-            from ultralytics import YOLO
-            self.local_model = YOLO(model_path)
-            self.use_roboflow = False
+        # Model 1: Road damage (D00, D10, D20, D40 / Potholes)
+        road_model_path = model_path or str(MODEL_DIR / "best.pt")
+        if os.path.exists(road_model_path):
+            print(f"[CRACKWATCH] Loading road damage model: {road_model_path}")
+            self.local_model = YOLO(road_model_path)
+            print(f"[CRACKWATCH] Road classes: {self.local_model.names}")
         else:
-            local_best = MODEL_DIR / "best.pt"
-            if local_best.exists():
-                print(f"[CRACKWATCH] Loading local model: {local_best}")
-                from ultralytics import YOLO
-                self.local_model = YOLO(str(local_best))
-                self.use_roboflow = False
-            else:
-                print("[CRACKWATCH] Using Roboflow hosted model API")
+            print("[CRACKWATCH] WARNING: No road damage model found, using Roboflow fallback")
+            self.use_roboflow = True
+
+        # Model 2: Building/wall crack segmentation
+        crack_seg_path = str(MODEL_DIR / "crack_seg.pt")
+        if os.path.exists(crack_seg_path):
+            print(f"[CRACKWATCH] Loading building crack model: {crack_seg_path}")
+            self.crack_model = YOLO(crack_seg_path)
+            print(f"[CRACKWATCH] Crack classes: {self.crack_model.names}")
+
+        # Model 3: OpenCV supplementary (spalling, leaks, corrosion) — always available
+        print("[CRACKWATCH] OpenCV supplementary detection: enabled")
+        print(f"[CRACKWATCH] Multi-model pipeline ready: Road={'✓' if self.local_model else '✗'} | Building={'✓' if self.crack_model else '✗'} | CV=✓")
 
     def detect(self, image: Image.Image, confidence_threshold: float = 0.25) -> dict:
         """Run detection on a PIL Image. Tries Roboflow first, falls back to CV."""
@@ -355,7 +384,7 @@ class DamageDetector:
         }
 
     def _detect_local(self, image: Image.Image, confidence_threshold: float) -> dict:
-        """Use local YOLO model."""
+        """Multi-model local detection: road + building cracks + CV supplement."""
         img_np = np.array(image)
         if len(img_np.shape) == 2:
             img_np = cv2.cvtColor(img_np, cv2.COLOR_GRAY2RGB)
@@ -363,28 +392,102 @@ class DamageDetector:
             img_np = cv2.cvtColor(img_np, cv2.COLOR_RGBA2RGB)
 
         h, w = img_np.shape[:2]
-        results = self.local_model(img_np, conf=confidence_threshold, verbose=False)
-        result = results[0]
-
         detections = []
-        for box in result.boxes:
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
-            conf = float(box.conf[0])
-            cls_id = int(box.cls[0])
-            cls_name = self.local_model.names.get(cls_id, f"class_{cls_id}")
-            display_name = RDD_CLASSES.get(cls_name, cls_name)
 
-            detections.append({
-                "bbox": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
-                "confidence": round(conf, 3),
-                "class_name": cls_name,
-                "display_name": display_name,
-                "class_id": cls_id,
-            })
+        # ── Model 1: Road damage (D00, D10, D20, Potholes) ──
+        if self.local_model:
+            results = self.local_model(img_np, conf=confidence_threshold, verbose=False)
+            result = results[0]
+            for box in result.boxes:
+                x1, y1, x2, y2 = box.xyxy[0].tolist()
+                conf = float(box.conf[0])
+                cls_id = int(box.cls[0])
+                cls_name = self.local_model.names.get(cls_id, f"class_{cls_id}")
+                display_name = RDD_CLASSES.get(cls_name, cls_name)
+                detections.append({
+                    "bbox": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
+                    "confidence": round(conf, 3),
+                    "class_name": cls_name,
+                    "display_name": display_name,
+                    "class_id": cls_id,
+                    "model_source": "road_damage",
+                })
 
-        annotated = result.plot()
-        annotated_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
-        pil_annotated = Image.fromarray(annotated_rgb)
+        # ── Model 2: Building/wall crack segmentation ──
+        if self.crack_model:
+            try:
+                crack_results = self.crack_model(img_np, conf=max(0.3, confidence_threshold), verbose=False)
+                crack_result = crack_results[0]
+                if crack_result.boxes is not None:
+                    for box in crack_result.boxes:
+                        x1, y1, x2, y2 = box.xyxy[0].tolist()
+                        conf = float(box.conf[0])
+                        # Check if this overlaps with an existing road detection
+                        is_duplicate = False
+                        for existing in detections:
+                            ex = existing["bbox"]
+                            # Simple IoU check
+                            ox1 = max(x1, ex[0]); oy1 = max(y1, ex[1])
+                            ox2 = min(x2, ex[2]); oy2 = min(y2, ex[3])
+                            if ox1 < ox2 and oy1 < oy2:
+                                overlap = (ox2-ox1)*(oy2-oy1)
+                                area1 = (x2-x1)*(y2-y1)
+                                if area1 > 0 and overlap / area1 > 0.3:
+                                    is_duplicate = True
+                                    break
+                        if not is_duplicate:
+                            detections.append({
+                                "bbox": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
+                                "confidence": round(conf, 3),
+                                "class_name": "building_crack",
+                                "display_name": "Building/Wall Crack",
+                                "class_id": 20,
+                                "model_source": "crack_segmentation",
+                            })
+            except Exception as e:
+                print(f"[CRACKWATCH] Crack model error: {e}")
+
+        # ── Model 3: OpenCV supplementary (spalling, leaks, corrosion, pipe damage) ──
+        try:
+            cv_extras = cv_supplementary_detection(image)
+            for det in cv_extras:
+                # Avoid duplicates with YOLO detections
+                is_dup = False
+                for existing in detections:
+                    ex = existing["bbox"]
+                    d = det["bbox"]
+                    ox1 = max(d[0], ex[0]); oy1 = max(d[1], ex[1])
+                    ox2 = min(d[2], ex[2]); oy2 = min(d[3], ex[3])
+                    if ox1 < ox2 and oy1 < oy2:
+                        overlap = (ox2-ox1)*(oy2-oy1)
+                        area1 = (d[2]-d[0])*(d[3]-d[1])
+                        if area1 > 0 and overlap / area1 > 0.3:
+                            is_dup = True; break
+                if not is_dup:
+                    det["model_source"] = "opencv_cv"
+                    detections.append(det)
+        except Exception as e:
+            print(f"[CRACKWATCH] CV supplementary error: {e}")
+
+        # Add damage info to all detections
+        for det in detections:
+            cls = det["class_name"]
+            if cls in DAMAGE_SUBTYPES:
+                det["category"] = DAMAGE_SUBTYPES[cls]["category"]
+                det["risk"] = DAMAGE_SUBTYPES[cls]["risk"]
+                det["repair"] = DAMAGE_SUBTYPES[cls]["repair"]
+            elif cls == "building_crack":
+                det["category"] = "Structural Crack"
+                det["risk"] = "Wall/building crack detected. May indicate foundation settlement or structural stress."
+                det["repair"] = "Epoxy injection or structural reinforcement"
+            else:
+                det["category"] = cls.replace("_", " ").title()
+                det["risk"] = "Monitor and assess during next inspection."
+                det["repair"] = "Professional assessment recommended"
+
+        # Draw all detections on image
+        annotated_img = draw_detections(image, detections)
+        pil_annotated = annotated_img
 
         buffer = io.BytesIO()
         pil_annotated.save(buffer, format="JPEG", quality=85)
