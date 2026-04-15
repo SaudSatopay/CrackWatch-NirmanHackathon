@@ -28,11 +28,114 @@ RDD_CLASSES = {
     "D40": "Pothole",
 }
 
+# Extended damage classification — enriches base detections
+DAMAGE_SUBTYPES = {
+    "D00": {
+        "name": "Longitudinal Crack",
+        "category": "Crack",
+        "risk": "Structural weakening along road direction. Can lead to lane separation.",
+        "repair": "Crack sealing or routing and sealing",
+    },
+    "D10": {
+        "name": "Transverse Crack",
+        "category": "Crack",
+        "risk": "Perpendicular stress fractures. Indicates thermal contraction or base failure.",
+        "repair": "Crack filling or full-depth patching",
+    },
+    "D20": {
+        "name": "Alligator Crack",
+        "category": "Crack",
+        "risk": "Interconnected fatigue cracks. Severe structural failure indicator — highest priority.",
+        "repair": "Full-depth reclamation or overlay required",
+    },
+    "D40": {
+        "name": "Pothole",
+        "category": "Pothole",
+        "risk": "Surface disintegration forming bowl-shaped holes. Immediate vehicle hazard.",
+        "repair": "Throw-and-roll patch or semi-permanent repair",
+    },
+}
+
 SEVERITY_COLORS = {
     "D00": (255, 107, 44),   # orange
     "D10": (255, 145, 66),   # amber
-    "D20": (255, 68, 68),    # red
-    "D40": (255, 68, 68),    # red
+    "D20": (255, 68, 68),    # red — most severe crack type
+    "D40": (200, 50, 50),    # dark red — pothole
+}
+
+
+def cv_supplementary_detection(image: Image.Image) -> list:
+    """
+    OpenCV-based supplementary detection for damage types the YOLO model might miss.
+    Detects: surface spalling, water stains/leaks, corrosion discoloration.
+    Returns additional detections to merge with YOLO results.
+    """
+    img_np = np.array(image)
+    h, w = img_np.shape[:2]
+    hsv = cv2.cvtColor(img_np, cv2.COLOR_RGB2HSV)
+    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+    extra_detections = []
+
+    # 1. Detect surface spalling (large bright patches on dark surfaces)
+    _, bright_mask = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+    bright_mask = cv2.morphologyEx(bright_mask, cv2.MORPH_OPEN, np.ones((10, 10)))
+    contours, _ = cv2.findContours(bright_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if area > (w * h * 0.02) and area < (w * h * 0.3):  # 2-30% of image
+            x, y, cw, ch = cv2.boundingRect(cnt)
+            extra_detections.append({
+                "bbox": [float(x), float(y), float(x + cw), float(y + ch)],
+                "confidence": round(0.3 + (area / (w * h)) * 0.5, 3),
+                "class_name": "spalling",
+                "display_name": "Surface Spalling",
+                "class_id": 10,
+            })
+
+    # 2. Detect water/moisture stains (blue-ish or dark wet patches)
+    lower_blue = np.array([90, 30, 30])
+    upper_blue = np.array([130, 255, 200])
+    blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_OPEN, np.ones((15, 15)))
+    contours, _ = cv2.findContours(blue_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if area > (w * h * 0.03):
+            x, y, cw, ch = cv2.boundingRect(cnt)
+            extra_detections.append({
+                "bbox": [float(x), float(y), float(x + cw), float(y + ch)],
+                "confidence": round(0.25 + (area / (w * h)) * 0.4, 3),
+                "class_name": "leak",
+                "display_name": "Water Stain / Leak",
+                "class_id": 11,
+            })
+
+    # 3. Detect corrosion (orange/rust-colored patches)
+    lower_rust = np.array([5, 80, 80])
+    upper_rust = np.array([25, 255, 255])
+    rust_mask = cv2.inRange(hsv, lower_rust, upper_rust)
+    rust_mask = cv2.morphologyEx(rust_mask, cv2.MORPH_OPEN, np.ones((10, 10)))
+    contours, _ = cv2.findContours(rust_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if area > (w * h * 0.01):
+            x, y, cw, ch = cv2.boundingRect(cnt)
+            extra_detections.append({
+                "bbox": [float(x), float(y), float(x + cw), float(y + ch)],
+                "confidence": round(0.3 + (area / (w * h)) * 0.5, 3),
+                "class_name": "corrosion",
+                "display_name": "Corrosion / Rust",
+                "class_id": 12,
+            })
+
+    return extra_detections[:5]  # Cap at 5 supplementary detections
+
+
+ALL_SEVERITY_COLORS = {
+    **SEVERITY_COLORS,
+    "spalling": (180, 130, 255),   # purple
+    "leak": (0, 150, 255),         # blue
+    "corrosion": (255, 165, 0),    # orange
 }
 
 
@@ -45,8 +148,8 @@ def draw_detections(image: Image.Image, detections: list) -> Image.Image:
         x1, y1, x2, y2 = det["bbox"]
         cls = det["class_name"]
         conf = det["confidence"]
-        color = SEVERITY_COLORS.get(cls, (0, 229, 204))
-        display = RDD_CLASSES.get(cls, cls)
+        color = ALL_SEVERITY_COLORS.get(cls, (0, 229, 204))
+        display = det.get("display_name", RDD_CLASSES.get(cls, cls))
 
         # Draw box
         draw.rectangle([x1, y1, x2, y2], outline=color, width=3)
@@ -157,6 +260,26 @@ class DamageDetector:
                 "display_name": display_name,
                 "class_id": list(RDD_CLASSES.keys()).index(cls_name) if cls_name in RDD_CLASSES else 0,
             })
+
+        # Run supplementary CV detection for spalling, leaks, corrosion
+        try:
+            cv_extras = cv_supplementary_detection(image)
+            detections.extend(cv_extras)
+        except Exception as e:
+            print(f"[CRACKWATCH] CV supplementary detection error: {e}")
+
+        # Add damage subtype info to each detection
+        for det in detections:
+            cls = det["class_name"]
+            if cls in DAMAGE_SUBTYPES:
+                info = DAMAGE_SUBTYPES[cls]
+                det["category"] = info["category"]
+                det["risk"] = info["risk"]
+                det["repair"] = info["repair"]
+            else:
+                det["category"] = cls.capitalize()
+                det["risk"] = "Monitor and assess during next inspection cycle."
+                det["repair"] = "Professional assessment recommended"
 
         # Draw detections on image
         annotated = draw_detections(image, detections)
