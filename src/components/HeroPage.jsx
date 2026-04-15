@@ -348,8 +348,8 @@ export default function HeroPage({ onEnter }) {
               transition={{ duration: 2, repeat: Infinity }}
             />
           </motion.div>
-          <span className="text-sm font-bold text-white tracking-wide">
-            CRACK<span className="text-emerald-400">DETECT</span>
+          <span className="text-base font-extrabold text-white tracking-wide">
+            CRACK<span className="text-emerald-400">WATCH</span>
           </span>
         </div>
 
@@ -406,7 +406,7 @@ export default function HeroPage({ onEnter }) {
 
             {/* Headline */}
             <motion.h1
-              className="text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight mb-6"
+              className="text-5xl lg:text-7xl font-black text-white leading-[1.05] tracking-tighter mb-6"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
@@ -430,14 +430,14 @@ export default function HeroPage({ onEnter }) {
 
             {/* Subtitle */}
             <motion.p
-              className="text-base text-zinc-400 leading-relaxed mb-8 max-w-md"
+              className="text-lg text-zinc-400 leading-relaxed mb-8 max-w-lg font-medium"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
             >
-              AI-powered structural analysis that scans, detects, and measures
-              cracks in real-time. From bridges to buildings — protect
-              infrastructure with 99.2% accuracy.
+              AI-powered command center that detects infrastructure damage,
+              estimates repair costs, and tells authorities exactly what to fix.
+              From roads to bridges — smart maintenance starts here.
             </motion.p>
 
             {/* CTA Buttons */}

@@ -15,33 +15,55 @@ import {
   ScanLine,
 } from "lucide-react";
 
-function Header() {
+function Header({ activeTab }) {
   const [searchFocused, setSearchFocused] = useState(false);
 
+  const titles = {
+    dashboard: { title: "Command Center", sub: "Infrastructure monitoring & damage intelligence" },
+    scan: { title: "New Scan", sub: "Upload & analyze structural damage" },
+    "repair-plan": { title: "Repair Plan", sub: "Priority actions & cost estimation" },
+    analytics: { title: "Analytics", sub: "Damage trends & pattern analysis" },
+    history: { title: "Scan History", sub: "Past inspections & reports" },
+    settings: { title: "Settings", sub: "System configuration" },
+  };
+
+  const { title, sub } = titles[activeTab] || titles.dashboard;
+
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50">
+    <header className="flex items-center justify-between px-8 py-5 border-b border-zinc-800/30 bg-zinc-950/50 backdrop-blur-sm">
       <div>
         <motion.h2
-          className="text-lg font-bold text-white"
+          className="text-2xl font-extrabold text-white tracking-tight"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
+          key={title}
         >
-          Dashboard
+          {title}
         </motion.h2>
-        <p className="text-xs text-zinc-500">
-          Real-time structural integrity monitoring
+        <p className="text-sm text-zinc-500 mt-0.5 font-medium">
+          {sub}
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        {/* Live indicator */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/20">
+          <motion.div
+            className="w-2 h-2 rounded-full bg-emerald-400"
+            animate={{ opacity: [1, 0.4, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <span className="text-[11px] text-emerald-400 font-semibold tracking-wide">LIVE</span>
+        </div>
+
         {/* Search */}
         <motion.div
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-colors ${
             searchFocused
               ? "border-emerald-500/50 bg-zinc-800/80"
-              : "border-zinc-800 bg-zinc-900/50"
+              : "border-zinc-800/50 bg-zinc-900/30"
           }`}
-          animate={{ width: searchFocused ? 280 : 200 }}
+          animate={{ width: searchFocused ? 300 : 220 }}
         >
           <Search className="w-4 h-4 text-zinc-500 shrink-0" />
           <input
@@ -51,35 +73,35 @@ function Header() {
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
           />
-          <kbd className="text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 shrink-0">
-            /
-          </kbd>
         </motion.div>
 
         {/* Notifications */}
         <motion.button
-          className="relative p-2 rounded-lg bg-zinc-900/50 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
+          className="relative p-2.5 rounded-xl bg-zinc-900/30 border border-zinc-800/50 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-5 h-5" />
           <motion.div
-            className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-zinc-950"
-            animate={{ scale: [1, 1.2, 1] }}
+            className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-zinc-950"
+            animate={{ scale: [1, 1.3, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           />
         </motion.button>
 
         {/* Profile */}
         <motion.button
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors"
+          className="flex items-center gap-3 px-4 py-2 rounded-xl bg-zinc-900/30 border border-zinc-800/50 hover:border-zinc-700 transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-            <User className="w-3 h-3 text-black" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
+            <User className="w-4 h-4 text-black" />
           </div>
-          <span className="text-xs text-zinc-300 font-medium">Inspector</span>
+          <div className="text-left">
+            <span className="text-sm text-white font-semibold block leading-tight">Inspector</span>
+            <span className="text-[10px] text-zinc-500">Municipal Dept.</span>
+          </div>
         </motion.button>
       </div>
     </header>
@@ -137,7 +159,7 @@ function Dashboard({ activeTab, setActiveTab }) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <Header />
+        <Header activeTab={activeTab} />
         <div className="flex-1 overflow-y-auto p-6">
           <AnimatePresence mode="wait">
             {activeTab === "dashboard" && <DashboardView key="dashboard" />}

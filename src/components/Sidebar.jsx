@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Zap,
   Shield,
+  MapPin,
 } from "lucide-react";
 
 const navItems = [
@@ -27,18 +28,19 @@ export default function Sidebar({ activeTab, onTabChange }) {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 72 : 240 }}
+      animate={{ width: collapsed ? 76 : 260 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="relative flex flex-col h-screen bg-zinc-950 border-r border-zinc-800/50 overflow-hidden"
+      className="relative flex flex-col h-screen bg-zinc-950 border-r border-zinc-800/30 overflow-hidden"
     >
       {/* Ambient glow */}
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-emerald-500/3 to-transparent pointer-events-none" />
 
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 relative z-10">
+      <div className="flex items-center gap-3 px-5 py-6 relative z-10">
         <motion.div
-          className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
-          whileHover={{ scale: 1.05 }}
+          className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
+          whileHover={{ scale: 1.05, rotate: 2 }}
           whileTap={{ scale: 0.95 }}
         >
           <ScanLine className="w-5 h-5 text-emerald-400" />
@@ -56,25 +58,25 @@ export default function Sidebar({ activeTab, onTabChange }) {
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <h1 className="text-sm font-bold text-white tracking-wide">
-                CRACK<span className="text-emerald-400">DETECT</span>
+              <h1 className="text-base font-extrabold text-white tracking-wide leading-tight">
+                CRACK<span className="text-emerald-400">WATCH</span>
               </h1>
-              <p className="text-[10px] text-zinc-500 tracking-widest uppercase">
-                AI Vision System
+              <p className="text-[10px] text-zinc-500 tracking-[0.15em] uppercase font-semibold">
+                Smart Infrastructure
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Status indicator */}
+      {/* Status */}
       <AnimatePresence>
         {!collapsed && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mx-3 mb-4 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10"
+            className="mx-4 mb-5 px-3 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10"
           >
             <div className="flex items-center gap-2">
               <motion.div
@@ -82,8 +84,8 @@ export default function Sidebar({ activeTab, onTabChange }) {
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
-              <span className="text-[11px] text-emerald-400 font-medium">
-                System Active
+              <span className="text-xs text-emerald-400 font-bold tracking-wide">
+                System Online
               </span>
             </div>
           </motion.div>
@@ -91,37 +93,37 @@ export default function Sidebar({ activeTab, onTabChange }) {
       </AnimatePresence>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 space-y-1">
+      <nav className="flex-1 px-3 space-y-1">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <motion.button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${
+              className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer ${
                 isActive
                   ? "text-white"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                  : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/30"
               }`}
-              whileHover={{ x: 2 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ x: 3 }}
+              whileTap={{ scale: 0.97 }}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+                  className="absolute inset-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
               <item.icon
-                className={`relative z-10 w-4.5 h-4.5 ${
+                className={`relative z-10 w-5 h-5 ${
                   isActive ? "text-emerald-400" : ""
                 }`}
               />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
-                    className="relative z-10"
+                    className="relative z-10 tracking-wide"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
@@ -131,44 +133,52 @@ export default function Sidebar({ activeTab, onTabChange }) {
                   </motion.span>
                 )}
               </AnimatePresence>
+              {isActive && !collapsed && item.id === "repair-plan" && (
+                <motion.span
+                  className="relative z-10 ml-auto text-[9px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-bold"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                >
+                  NEW
+                </motion.span>
+              )}
             </motion.button>
           );
         })}
       </nav>
 
-      {/* Bottom section */}
-      <div className="px-3 pb-4 space-y-3">
+      {/* Bottom */}
+      <div className="px-4 pb-5 space-y-3">
         <AnimatePresence>
           {!collapsed && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent border border-emerald-500/10"
+              className="p-4 rounded-xl bg-gradient-to-br from-zinc-800/50 to-zinc-900/30 border border-zinc-700/20"
             >
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-semibold text-white">
-                  Pro Plan
+                <span className="text-xs font-bold text-white">
+                  NIRMAN 2026
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-400 leading-relaxed">
-                Unlimited scans with AI-powered detection
+              <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
+                AI-Powered Infrastructure Command Center
               </p>
               <div className="mt-2 flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] text-amber-400 font-medium">
-                  247 scans remaining
+                <MapPin className="w-3 h-3 text-zinc-500" />
+                <span className="text-[10px] text-zinc-500 font-medium">
+                  Mumbai, Maharashtra
                 </span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Collapse toggle */}
         <motion.button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/30 transition-colors cursor-pointer"
           whileTap={{ scale: 0.95 }}
         >
           {collapsed ? (
@@ -176,7 +186,7 @@ export default function Sidebar({ activeTab, onTabChange }) {
           ) : (
             <>
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-xs">Collapse</span>
+              <span className="text-xs font-medium">Collapse</span>
             </>
           )}
         </motion.button>
