@@ -54,7 +54,7 @@ function Ring({ score, size = 120 }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <motion.span
-          className="text-3xl font-bold"
+          className="text-2xl font-bold"
           style={{ color, fontFamily: 'Space Grotesk' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -97,30 +97,30 @@ export default function StatsPage() {
   return (
     <div className="h-full overflow-y-auto">
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 bg-gradient-to-b from-[#131315] to-transparent sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
+      <div className="px-4 pt-4 pb-2">
+        <h1 className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
           Government Dashboard
         </h1>
-        <p className="text-[12px] text-white/40 mt-0.5">Public accountability & transparency</p>
+        <p className="text-[11px] text-white/40 mt-0.5">Public accountability & transparency</p>
       </div>
 
-      <div className="px-5 pb-8 space-y-5">
+      <div className="px-4 pb-8 space-y-4">
         {/* Performance Score */}
         <motion.div
-          className="bg-white/[0.03] rounded-2xl p-6 flex flex-col items-center"
+          className="bg-white/[0.03] rounded-2xl p-5 flex flex-col items-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
           <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-4">Government Performance</p>
-          <Ring score={stats.performance_score} size={140} />
+          <Ring score={stats.performance_score} size={120} />
           <p className="text-[12px] text-white/40 mt-4 font-medium">
             {stats.performance_score > 70 ? '✓ Performing above average' : stats.performance_score > 40 ? '⚠ Needs improvement' : '✕ Critical — action needed'}
           </p>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5">
           {[
             { label: 'Total Reports', value: stats.total_reports, icon: BarChart3, color: '#e5e1e4', delay: 0.15 },
             { label: 'Fixed', value: stats.fixed, icon: CheckCircle, color: '#69db7c', delay: 0.2 },
@@ -129,27 +129,25 @@ export default function StatsPage() {
           ].map((s, i) => (
             <motion.div
               key={s.label}
-              className="bg-white/[0.03] rounded-2xl p-4"
+              className="bg-white/[0.03] rounded-xl p-3"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: s.delay }}
             >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${s.color}10` }}>
-                  <s.icon className="w-4 h-4" style={{ color: s.color }} />
-                </div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
+                <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">{s.label}</span>
               </div>
-              <div className="text-2xl font-bold tracking-tight" style={{ color: s.color, fontFamily: 'Space Grotesk' }}>
+              <div className="text-xl font-bold tracking-tight" style={{ color: s.color, fontFamily: 'Space Grotesk' }}>
                 <AnimNum value={s.value} delay={s.delay * 1000} />
               </div>
-              <p className="text-[11px] text-white/30 font-medium mt-1">{s.label}</p>
             </motion.div>
           ))}
         </div>
 
         {/* Fix Rate */}
         <motion.div
-          className="bg-white/[0.03] rounded-2xl p-5"
+          className="bg-white/[0.03] rounded-xl p-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
@@ -191,7 +189,7 @@ export default function StatsPage() {
 
         {/* Cost */}
         <motion.div
-          className="bg-gradient-to-br from-[#ffa94d]/[0.06] to-transparent rounded-2xl p-5 border border-[#ffa94d]/10"
+          className="bg-gradient-to-br from-[#ffa94d]/[0.06] to-transparent rounded-xl p-4 border border-[#ffa94d]/10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -200,7 +198,7 @@ export default function StatsPage() {
             <Shield className="w-4 h-4 text-[#ffa94d]" />
             <span className="text-[11px] text-white/30 font-bold uppercase tracking-wider">Estimated Repair Cost</span>
           </div>
-          <div className="text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
+          <div className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
             {stats.total_estimated_cost_formatted || `₹${stats.total_estimated_cost?.toLocaleString('en-IN')}`}
           </div>
           <p className="text-[11px] text-white/25 mt-1.5">Total cost to fix all reported damages</p>
