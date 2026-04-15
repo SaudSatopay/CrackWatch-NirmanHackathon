@@ -220,17 +220,27 @@ export default function ScanZone() {
       setInferenceTime(data.inference_time_ms);
       setApiStats(data.stats);
 
-      // Map API detections to the UI format
+      // Pass through ALL API data — no stripping
       const mappedResults = data.detections.map((det, i) => ({
         id: i + 1,
         severity: det.severity_label === 'critical' ? 'critical' : det.severity_label === 'warning' ? 'moderate' : 'minor',
-        type: det.display_name,
+        type: det.display_name || det.class_name,
         confidence: +(det.confidence * 100).toFixed(1),
         location: `Region ${i + 1}`,
-        width: `${det.area_ratio}%`,
-        length: `${det.severity}%`,
         bbox: det.bbox,
         severityScore: det.severity,
+        area_ratio: det.area_ratio,
+        // Cost data from backend
+        cost: det.cost,
+        // Priority data
+        priority_rank: det.priority_rank,
+        urgency_score: det.urgency_score,
+        // Explainable AI
+        explanation: det.explanation,
+        // Repair info
+        category: det.category,
+        risk: det.risk,
+        repair: det.repair,
       }));
 
       // Set annotated image from API
@@ -533,67 +543,83 @@ export default function ScanZone() {
                     transition={{ delay: i * 0.15 }}
                     whileHover={{ scale: 1.01 }}
                   >
+                    {/* Header */}
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            result.severity === "critical"
-                              ? "bg-red-500"
-                              : result.severity === "moderate"
-                              ? "bg-amber-500"
-                              : "bg-yellow-500"
-                          }`}
-                        />
-                        <span className="text-xs font-semibold text-white">
-                          {result.type}
-                        </span>
+                        <div className={`w-2 h-2 rounded-full ${
+                          result.severity === "critical" ? "bg-red-500" :
+                          result.severity === "moderate" ? "bg-amber-500" : "bg-yellow-500"
+                        }`} />
+                        <span className="text-xs font-semibold text-white">{result.type}</span>
+                        {result.priority_rank && (
+                          <span className="text-[9px] text-zinc-500">#{result.priority_rank}</span>
+                        )}
                       </div>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                          result.severity === "critical"
-                            ? "bg-red-500/10 text-red-400"
-                            : result.severity === "moderate"
-                            ? "bg-amber-500/10 text-amber-400"
-                            : "bg-yellow-500/10 text-yellow-400"
-                        }`}
-                      >
-                        {result.severity}
-                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                        result.severity === "critical" ? "bg-red-500/10 text-red-400" :
+                        result.severity === "moderate" ? "bg-amber-500/10 text-amber-400" :
+                        "bg-yellow-500/10 text-yellow-400"
+                      }`}>{result.severity}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+
+                    {/* Key metrics */}
+                    <div className="grid grid-cols-2 gap-2 text-[11px] mb-2">
                       <div>
                         <span className="text-zinc-500">Confidence</span>
-                        <p className="text-zinc-300 font-mono">
-                          {result.confidence}%
-                        </p>
+                        <p className="text-zinc-300 font-mono">{result.confidence}%</p>
                       </div>
                       <div>
-                        <span className="text-zinc-500">Location</span>
-                        <p className="text-zinc-300">{result.location}</p>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500">Width</span>
-                        <p className="text-zinc-300 font-mono">
-                          {result.width}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500">Length</span>
-                        <p className="text-zinc-300 font-mono">
-                          {result.length}
-                        </p>
+                        <span className="text-zinc-500">Severity Score</span>
+                        <p className="text-zinc-300 font-mono">{result.severityScore}%</p>
                       </div>
                     </div>
+
+                    {/* Cost estimation */}
+                    {result.cost && (
+                      <div className="mt-2 p-2 rounded-md bg-zinc-900/50 border border-zinc-700/20">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Repair Cost</span>
+                          <span className="text-xs font-bold text-emerald-400">
+                            ₹{result.cost.cost_estimated?.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                          <div>
+                            <span className="text-zinc-600">Method</span>
+                            <p className="text-zinc-400">{result.cost.repair_method}</p>
+                          </div>
+                          <div>
+                            <span className="text-zinc-600">Time</span>
+                            <p className="text-zinc-400">{result.cost.repair_time}</p>
+                          </div>
+                        </div>
+                        {/* Before vs After */}
+                        <div className="flex gap-2 mt-1.5 text-[9px]">
+                          <span className="text-red-400/70">If ignored: ₹{result.cost.cost_if_ignored?.toLocaleString('en-IN')}</span>
+                          <span className="text-cyan-400/70">Save: ₹{result.cost.savings_if_fixed_now?.toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Explainable AI */}
+                    {result.explanation && (
+                      <details className="mt-2 group/explain">
+                        <summary className="text-[10px] text-zinc-500 cursor-pointer hover:text-zinc-300 flex items-center gap-1">
+                          <span>ⓘ Why this severity?</span>
+                        </summary>
+                        <div className="mt-1.5 p-2 rounded-md bg-zinc-900/30 text-[10px]">
+                          <p className="text-zinc-400 leading-relaxed mb-1">{result.explanation.explanation}</p>
+                          <p className="text-emerald-400/70 italic">{result.explanation.recommendation}</p>
+                        </div>
+                      </details>
+                    )}
 
                     {/* Confidence bar */}
                     <div className="mt-2 w-full h-1 rounded-full bg-zinc-700 overflow-hidden">
                       <motion.div
                         className={`h-full rounded-full ${
-                          result.severity === "critical"
-                            ? "bg-red-500"
-                            : result.severity === "moderate"
-                            ? "bg-amber-500"
-                            : "bg-yellow-500"
+                          result.severity === "critical" ? "bg-red-500" :
+                          result.severity === "moderate" ? "bg-amber-500" : "bg-yellow-500"
                         }`}
                         initial={{ width: "0%" }}
                         animate={{ width: `${result.confidence}%` }}
@@ -603,7 +629,7 @@ export default function ScanZone() {
                   </motion.div>
                 ))}
 
-                {/* Summary */}
+                {/* Summary with real cost data */}
                 <motion.div
                   className={`mt-4 p-3 rounded-lg border ${
                     apiStats?.critical_count > 0
@@ -625,15 +651,37 @@ export default function ScanZone() {
                     <span className={`text-xs font-semibold ${
                       apiStats?.critical_count > 0 ? 'text-red-400' : apiStats?.warning_count > 0 ? 'text-amber-400' : 'text-emerald-400'
                     }`}>
-                      {apiStats?.critical_count > 0 ? 'Action Required' : apiStats?.warning_count > 0 ? 'Monitor Recommended' : 'Structure Healthy'}
+                      {apiStats?.critical_count > 0 ? 'Immediate Action Required' : apiStats?.warning_count > 0 ? 'Scheduled Maintenance Recommended' : 'Structure Healthy'}
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
                     {results.length} defect{results.length !== 1 ? 's' : ''} detected.
                     {apiStats ? ` Structural integrity: ${apiStats.structural_integrity}%.` : ''}
                     {inferenceTime ? ` Analyzed in ${inferenceTime}ms.` : ''}
-                    {apiStats?.critical_count > 0 ? ' Immediate inspection recommended.' : ''}
                   </p>
+                  {/* Total cost summary from real detections */}
+                  {results.some(r => r.cost) && (
+                    <div className="mt-2 pt-2 border-t border-zinc-700/30 grid grid-cols-3 gap-2 text-[10px]">
+                      <div>
+                        <span className="text-zinc-500">Total Cost</span>
+                        <p className="text-white font-bold">
+                          ₹{results.reduce((sum, r) => sum + (r.cost?.cost_estimated || 0), 0).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">If Ignored</span>
+                        <p className="text-red-400 font-bold">
+                          ₹{results.reduce((sum, r) => sum + (r.cost?.cost_if_ignored || 0), 0).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500">You Save</span>
+                        <p className="text-cyan-400 font-bold">
+                          ₹{results.reduce((sum, r) => sum + (r.cost?.savings_if_fixed_now || 0), 0).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               </motion.div>
             ) : (

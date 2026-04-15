@@ -7,18 +7,23 @@ import {
   Activity,
   TrendingUp,
   TrendingDown,
+  DollarSign,
 } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function AnimatedCounter({ target, duration = 2000, prefix = "", suffix = "" }) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
+    const numTarget = typeof target === "string" ? parseFloat(target) : target;
+    if (isNaN(numTarget)) { setCount(target); return; }
     let start = 0;
-    const increment = target / (duration / 16);
+    const increment = numTarget / (duration / 16);
     const timer = setInterval(() => {
       start += increment;
-      if (start >= target) {
-        setCount(target);
+      if (start >= numTarget) {
+        setCount(numTarget);
         clearInterval(timer);
       } else {
         setCount(Math.floor(start));
@@ -30,62 +35,89 @@ function AnimatedCounter({ target, duration = 2000, prefix = "", suffix = "" }) 
   return (
     <span>
       {prefix}
-      {count.toLocaleString()}
+      {typeof count === "number" ? count.toLocaleString("en-IN") : count}
       {suffix}
     </span>
   );
 }
 
-const stats = [
-  {
-    label: "Total Scans",
-    value: 1247,
-    change: "+12.5%",
-    trend: "up",
-    icon: ScanLine,
-    color: "emerald",
-    gradient: "from-emerald-500/20 to-emerald-500/0",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-400",
-  },
-  {
-    label: "Cracks Detected",
-    value: 89,
-    change: "+3.2%",
-    trend: "up",
-    icon: AlertTriangle,
-    color: "red",
-    gradient: "from-red-500/20 to-red-500/0",
-    iconBg: "bg-red-500/10",
-    iconColor: "text-red-400",
-  },
-  {
-    label: "Clear Scans",
-    value: 1158,
-    change: "+15.8%",
-    trend: "up",
-    icon: CheckCircle,
-    color: "cyan",
-    gradient: "from-cyan-500/20 to-cyan-500/0",
-    iconBg: "bg-cyan-500/10",
-    iconColor: "text-cyan-400",
-  },
-  {
-    label: "Accuracy Rate",
-    value: 98.7,
-    change: "+0.3%",
-    trend: "up",
-    icon: Activity,
-    color: "violet",
-    gradient: "from-violet-500/20 to-violet-500/0",
-    iconBg: "bg-violet-500/10",
-    iconColor: "text-violet-400",
-    suffix: "%",
-    decimals: true,
-  },
-];
+function buildStats(apiStats) {
+  const totalScans = apiStats?.total_scans || 0;
+  const totalDefects = apiStats?.total_defects || 0;
+  const clearScans = Math.max(0, totalScans - (totalDefects > 0 ? 1 : 0));
+  const integrity = apiStats?.structural_integrity ?? 100;
+
+  return [
+    {
+      label: "Total Scans",
+      value: totalScans,
+      change: totalScans > 0 ? `${totalScans} today` : "No scans yet",
+      trend: "up",
+      icon: ScanLine,
+      color: "emerald",
+      gradient: "from-emerald-500/20 to-emerald-500/0",
+      iconBg: "bg-emerald-500/10",
+      iconColor: "text-emerald-400",
+    },
+    {
+      label: "Defects Detected",
+      value: totalDefects,
+      change: totalDefects > 0 ? `${apiStats?.critical_count || 0} critical` : "None",
+      trend: totalDefects > 0 ? "up" : "down",
+      icon: AlertTriangle,
+      color: "red",
+      gradient: "from-red-500/20 to-red-500/0",
+      iconBg: "bg-red-500/10",
+      iconColor: "text-red-400",
+    },
+    {
+      label: "Structural Integrity",
+      value: integrity,
+      change: integrity > 80 ? "Healthy" : integrity > 50 ? "At risk" : "Critical",
+      trend: integrity > 60 ? "up" : "down",
+      icon: CheckCircle,
+      color: "cyan",
+      gradient: "from-cyan-500/20 to-cyan-500/0",
+      iconBg: "bg-cyan-500/10",
+      iconColor: "text-cyan-400",
+      suffix: "%",
+    },
+    {
+      label: "Avg Severity",
+      value: apiStats?.avg_severity || 0,
+      change: (apiStats?.avg_severity || 0) > 60 ? "High risk" : (apiStats?.avg_severity || 0) > 30 ? "Moderate" : "Low",
+      trend: (apiStats?.avg_severity || 0) > 50 ? "up" : "down",
+      icon: Activity,
+      color: "violet",
+      gradient: "from-violet-500/20 to-violet-500/0",
+      iconBg: "bg-violet-500/10",
+      iconColor: "text-violet-400",
+      suffix: "%",
+    },
+  ];
+}
 
 export default function StatsCards() {
+  const [stats, setStats] = useState(buildStats(null));
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API_URL}/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          setStats(buildStats(data));
+        }
+      } catch (e) {
+        // Backend not running — keep defaults
+      }
+    };
+    fetchStats();
+    // Poll every 5 seconds for live updates
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {stats.map((stat, i) => (
@@ -114,7 +146,8 @@ export default function StatsCards() {
                 </div>
                 <div
                   className={`flex items-center gap-1 text-xs font-medium ${
-                    stat.trend === "up" ? "text-emerald-400" : "text-red-400"
+                    stat.trend === "up" && stat.color === "red" ? "text-red-400" :
+                    stat.trend === "up" ? "text-emerald-400" : "text-zinc-500"
                   }`}
                 >
                   {stat.trend === "up" ? (
