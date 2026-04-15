@@ -9,6 +9,7 @@ import RecentScans from "@/components/RecentScans";
 import HeroPage from "@/components/HeroPage";
 import RepairPlan from "@/components/RepairPlan";
 import GovtMap from "@/components/GovtMap";
+import LoginPage from "@/components/LoginPage";
 import {
   Bell,
   Search,
@@ -16,7 +17,7 @@ import {
   ScanLine,
 } from "lucide-react";
 
-function Header({ activeTab }) {
+function Header({ activeTab, user, onLogout }) {
   const [searchFocused, setSearchFocused] = useState(false);
 
   const titles = {
@@ -101,8 +102,8 @@ function Header({ activeTab }) {
             <User className="w-4 h-4 text-black" />
           </div>
           <div className="text-left">
-            <span className="text-sm text-white font-semibold block leading-tight">Inspector</span>
-            <span className="text-[10px] text-zinc-500">Municipal Dept.</span>
+            <span className="text-sm text-white font-semibold block leading-tight">{user?.name || 'Inspector'}</span>
+            <span className="text-[10px] text-zinc-500">{user?.department || 'Municipal Dept.'}</span>
           </div>
         </motion.button>
       </div>
@@ -147,7 +148,7 @@ function PlaceholderView({ title, icon }) {
   );
 }
 
-function Dashboard({ activeTab, setActiveTab }) {
+function Dashboard({ activeTab, setActiveTab, user, onLogout }) {
   return (
     <div className="flex h-screen bg-[#131315] text-[#e5e1e4] overflow-hidden">
       {/* Ambient background — Stitch "Sovereign Intelligence" */}
@@ -162,7 +163,7 @@ function Dashboard({ activeTab, setActiveTab }) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <Header activeTab={activeTab} />
+        <Header activeTab={activeTab} user={user} onLogout={onLogout} />
         <div className={`flex-1 overflow-y-auto ${activeTab === 'govt-map' ? '' : 'p-6'}`}>
           <AnimatePresence mode="wait">
             {activeTab === "dashboard" && <DashboardView key="dashboard" />}
@@ -202,20 +203,36 @@ function Dashboard({ activeTab, setActiveTab }) {
 }
 
 function App() {
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("crackwatch_user");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [showHero, setShowHero] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  const handleLogout = () => {
+    localStorage.removeItem("crackwatch_token");
+    localStorage.removeItem("crackwatch_user");
+    setUser(null);
+    setShowHero(true);
+  };
+
+  // Not logged in → show login
+  if (!user) {
+    return <LoginPage onLogin={(data) => { setUser(data); setShowHero(true); }} />;
+  }
 
   return (
     <TooltipProvider>
       {showHero ? (
-        <HeroPage onEnter={() => { console.log('HERO ENTER CLICKED'); setShowHero(false); }} />
+        <HeroPage onEnter={() => setShowHero(false)} />
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Dashboard activeTab={activeTab} setActiveTab={setActiveTab} />
+          <Dashboard activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={handleLogout} />
         </motion.div>
       )}
     </TooltipProvider>

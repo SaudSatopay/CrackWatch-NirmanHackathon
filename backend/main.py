@@ -9,13 +9,14 @@ from datetime import datetime, timezone
 from typing import Optional
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from inference import get_detector
 from severity import compute_severity, compute_overall_stats
 from cost_engine import estimate_cost, rank_priorities, generate_repair_plan, explain_severity
+from auth import login, register_citizen, verify_token
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -56,6 +57,38 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
+# ============================================================
+# AUTHENTICATION ENDPOINTS
+# ============================================================
+
+@app.post("/auth/login")
+async def auth_login(username: str = Form(...), password: str = Form(...)):
+    """Government login with username + password."""
+    result = login(username, password)
+    if not result:
+        raise HTTPException(401, "Invalid username or password")
+    return result
+
+
+@app.post("/auth/register")
+async def auth_register(name: str = Form(...)):
+    """Citizen registration — just a name, no password."""
+    if not name.strip():
+        raise HTTPException(400, "Name is required")
+    return register_citizen(name.strip())
+
+
+@app.get("/auth/me")
+async def auth_me(request: Request):
+    """Verify token and return user info."""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(401, "Not authenticated")
+    token = auth_header.split(" ")[1]
+    payload = verify_token(token)
+    return {"username": payload["sub"], "role": payload["role"], "name": payload["name"]}
 
 
 @app.post("/detect")
