@@ -333,12 +333,12 @@ export default function ScanZone() {
               >
                 <Upload className="w-8 h-8 text-zinc-500" />
               </motion.div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
                 Drop image to analyze
               </h3>
-              <p className="text-sm text-zinc-500 mb-6 text-center max-w-sm">
-                Upload a photo of a surface to detect cracks, fractures, and
-                structural damage using AI
+              <p className="text-sm text-zinc-400 mb-6 text-center max-w-md font-medium leading-relaxed">
+                Upload a photo of roads, bridges, or pipelines to detect cracks,
+                potholes, and structural damage using AI
               </p>
               <div className="flex gap-3">
                 <motion.button
@@ -471,8 +471,8 @@ export default function ScanZone() {
                 >
                   <motion.button
                     onClick={startScan}
-                    className="px-6 py-3 rounded-xl bg-emerald-500 text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/25"
-                    whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(16,185,129,0.3)" }}
+                    className="px-8 py-4 rounded-xl bg-emerald-500 text-black font-extrabold text-base flex items-center gap-2 shadow-lg shadow-emerald-500/30"
+                    whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(16,185,129,0.4)" }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <ScanLine className="w-5 h-5" />
@@ -488,8 +488,8 @@ export default function ScanZone() {
       {/* Results panel */}
       <div className="lg:col-span-2 space-y-4">
         <div className="rounded-xl bg-zinc-900/50 border border-zinc-800/50 p-4">
-          <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-400" />
+          <h3 className="text-base font-extrabold text-white mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-emerald-400" />
             Detection Results
           </h3>
 

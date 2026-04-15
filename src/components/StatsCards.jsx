@@ -128,7 +128,7 @@ export default function StatsCards() {
           transition={{ delay: i * 0.1, duration: 0.5 }}
         >
           <motion.div
-            className="relative overflow-hidden rounded-xl bg-zinc-900/50 border border-zinc-800/50 p-4 group cursor-pointer"
+            className="relative overflow-hidden rounded-2xl bg-zinc-900/50 border border-zinc-800/50 p-5 group cursor-pointer"
             whileHover={{ scale: 1.02, borderColor: "rgba(255,255,255,0.1)" }}
             transition={{ duration: 0.2 }}
           >
@@ -159,13 +159,13 @@ export default function StatsCards() {
                 </div>
               </div>
 
-              <div className="text-2xl font-bold text-white tracking-tight">
+              <div className="text-3xl font-extrabold text-white tracking-tight mt-1">
                 <AnimatedCounter
                   target={stat.value}
                   suffix={stat.suffix || ""}
                 />
               </div>
-              <p className="text-xs text-zinc-500 mt-1">{stat.label}</p>
+              <p className="text-sm text-zinc-400 mt-1.5 font-semibold">{stat.label}</p>
             </div>
 
             {/* Animated bottom bar */}

@@ -62,19 +62,19 @@ function CostComparison({ costNow, costIfIgnored, savings }) {
         <div className="text-[10px] text-emerald-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
           <TrendingDown className="w-3 h-3" /> Fix Now
         </div>
-        <div className="text-sm font-bold text-emerald-400">{costNow}</div>
+        <div className="text-base font-extrabold text-emerald-400">{costNow}</div>
       </div>
       <div className="text-center border-x border-zinc-700/30">
-        <div className="text-[10px] text-red-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+        <div className="text-[10px] text-red-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1 font-bold">
           <TrendingUp className="w-3 h-3" /> If Ignored
         </div>
-        <div className="text-sm font-bold text-red-400">{costIfIgnored}</div>
+        <div className="text-base font-extrabold text-red-400">{costIfIgnored}</div>
       </div>
       <div className="text-center">
-        <div className="text-[10px] text-cyan-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+        <div className="text-[10px] text-cyan-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-1 font-bold">
           <DollarSign className="w-3 h-3" /> Savings
         </div>
-        <div className="text-sm font-bold text-cyan-400">{savings}</div>
+        <div className="text-base font-extrabold text-cyan-400">{savings}</div>
       </div>
     </div>
   );
@@ -143,7 +143,7 @@ function PriorityCard({ item, index }) {
             #{item.priority}
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-white">{item.damage_type}</h4>
+            <h4 className="text-base font-extrabold text-white">{item.damage_type}</h4>
             <div className="flex items-center gap-2 mt-0.5">
               <SeverityBadge severity={item.severity} />
               <span className="text-[10px] text-zinc-500">Urgency: {item.urgency_score}</span>
@@ -151,8 +151,8 @@ function PriorityCard({ item, index }) {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-white">{item.estimated_cost}</div>
-          <div className="text-[10px] text-zinc-500">estimated</div>
+          <div className="text-2xl font-extrabold text-white">{item.estimated_cost}</div>
+          <div className="text-xs text-zinc-500 font-medium">estimated</div>
         </div>
       </div>
 
@@ -264,11 +264,11 @@ export default function RepairPlan() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-3xl font-extrabold text-white flex items-center gap-3 tracking-tight">
+            <Zap className="w-7 h-7 text-emerald-400" />
             Today's Repair Plan
           </h2>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-sm text-zinc-500 mt-1 font-medium">
             Generated {new Date(plan.generated_at).toLocaleString()} • {s.total_defects} defects analyzed
           </p>
         </div>
@@ -369,7 +369,7 @@ export default function RepairPlan() {
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{kpi.label}</span>
               <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
             </div>
-            <div className={`text-xl font-bold ${kpi.color}`}>
+            <div className={`text-2xl font-extrabold ${kpi.color}`}>
               {typeof kpi.value === "number" ? <AnimatedCounter value={kpi.value} /> : kpi.value}
             </div>
           </motion.div>
@@ -378,7 +378,7 @@ export default function RepairPlan() {
 
       {/* Priority List */}
       <div>
-        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+        <h3 className="text-lg font-extrabold text-white mb-4 flex items-center gap-2 tracking-tight">
           <Zap className="w-4 h-4 text-amber-400" />
           Priority Repairs — What to Fix First
         </h3>
@@ -392,7 +392,7 @@ export default function RepairPlan() {
       {/* All detections with explainable AI */}
       {plan.all_detections && plan.all_detections.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <h3 className="text-lg font-extrabold text-white mb-4 flex items-center gap-2 tracking-tight">
             <Info className="w-4 h-4 text-cyan-400" />
             Detailed Analysis — Explainable AI
           </h3>
