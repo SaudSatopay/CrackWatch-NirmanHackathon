@@ -10,6 +10,7 @@ import HeroPage from "@/components/HeroPage";
 import RepairPlan from "@/components/RepairPlan";
 import GovtMap from "@/components/GovtMap";
 import LoginPage from "@/components/LoginPage";
+import SettingsPage from "@/components/SettingsPage";
 import {
   Bell,
   Search,
@@ -193,7 +194,9 @@ function Dashboard({ activeTab, setActiveTab, user, onLogout }) {
               </motion.div>
             )}
             {activeTab === "settings" && (
-              <PlaceholderView key="settings" title="Settings" />
+              <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <SettingsPage user={user} onLogout={onLogout} />
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
