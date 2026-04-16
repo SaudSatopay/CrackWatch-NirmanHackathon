@@ -5,6 +5,12 @@
 
 ---
 
+## v3.6.2 — Wall of Shame: region-based contractor mapping
+- Added 4 new mock contractors: South Mumbai Roadworks, Western Suburbs Builders, Eastern Suburbs Contractor, CIDCO Infrastructure
+- Expanded area→contractor keyword mapping: 30+ Mumbai / Navi Mumbai location keywords (Marine Drive, Bandra, Andheri, Chembur, Vashi, Kharghar, Panvel, etc.)
+- Wall of Shame now ranks 6 contractors (was 2) — realistic accountability showcase
+- Each contractor gets ~3-12 reports spread across their zone, with varied fix rates and negligence scores
+
 ## v3.6.1 — Real AI-detected demo reports across Mumbai + Navi Mumbai
 - Added backend/seed_from_images.py — reads images from any folder, runs full AI detection, generates N demo reports
 - Replaced 8 hardcoded fake demo reports with 20 real image-based reports

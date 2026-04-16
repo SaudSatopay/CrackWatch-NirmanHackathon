@@ -11,21 +11,60 @@ from collections import defaultdict
 # ── Mock contractor data (for hackathon demo) ──
 CONTRACTORS = {
     "CTR-001": {"name": "Mumbai Road Corp", "area": "Thane", "city": "Mumbai"},
-    "CTR-002": {"name": "Panvel Infrastructure Ltd", "area": "Panvel", "city": "Mumbai"},
-    "CTR-003": {"name": "Navi Mumbai PWD", "area": "Navi Mumbai", "city": "Mumbai"},
-    "CTR-004": {"name": "Kalamboli Builders", "area": "Kalamboli", "city": "Mumbai"},
+    "CTR-002": {"name": "Panvel Infrastructure Ltd", "area": "Raigad", "city": "Navi Mumbai"},
+    "CTR-003": {"name": "Navi Mumbai PWD", "area": "NMMC Central", "city": "Navi Mumbai"},
+    "CTR-004": {"name": "Kalamboli Builders", "area": "Kalamboli", "city": "Navi Mumbai"},
     "CTR-005": {"name": "Pune Smart Roads", "area": "Pune Central", "city": "Pune"},
     "CTR-006": {"name": "Pune Municipal Works", "area": "Pune East", "city": "Pune"},
+    "CTR-007": {"name": "South Mumbai Roadworks", "area": "South Mumbai", "city": "Mumbai"},
+    "CTR-008": {"name": "Western Suburbs Builders", "area": "Western Suburbs", "city": "Mumbai"},
+    "CTR-009": {"name": "Eastern Suburbs Contractor", "area": "Eastern Suburbs", "city": "Mumbai"},
+    "CTR-010": {"name": "CIDCO Infrastructure", "area": "CIDCO Zone", "city": "Navi Mumbai"},
 }
 
-# Location → contractor mapping (by area proximity)
+# Location → contractor mapping (keyword-based, first match wins).
+# Order matters — most specific first.
 AREA_CONTRACTOR = {
-    "Thane": "CTR-001",
-    "Panvel": "CTR-002",
-    "Navi Mumbai": "CTR-003",
-    "Kalamboli": "CTR-004",
-    "Kharghar": "CTR-003",
+    # South Mumbai
+    "Marine Drive": "CTR-007",
+    "Dadar": "CTR-007",
+    "Sea Link": "CTR-007",
+    "Worli": "CTR-007",
+    "South Mumbai": "CTR-007",
+    # Western Suburbs
+    "Bandra": "CTR-008",
+    "BKC": "CTR-008",
+    "Andheri": "CTR-008",
+    "Lokhandwala": "CTR-008",
+    "Borivali": "CTR-008",
+    "Juhu": "CTR-008",
+    "Malad": "CTR-008",
+    # Eastern Suburbs
+    "Chembur": "CTR-009",
+    "Ghatkopar": "CTR-009",
+    "Powai": "CTR-009",
+    "Mulund": "CTR-009",
+    "Kanjurmarg": "CTR-009",
+    # Navi Mumbai — NMMC central
+    "Vashi": "CTR-003",
+    "Nerul": "CTR-003",
     "Belapur": "CTR-003",
+    "Seawoods": "CTR-003",
+    "Airoli": "CTR-003",
+    "Kopar Khairane": "CTR-003",
+    "Navi Mumbai": "CTR-003",
+    # CIDCO zones — Kharghar, Taloja, Uran
+    "Kharghar": "CTR-010",
+    "Taloja": "CTR-010",
+    "Uran": "CTR-010",
+    "Kamothe": "CTR-010",
+    # Raigad / Panvel
+    "Panvel": "CTR-002",
+    "Kalamboli": "CTR-004",
+    # Thane
+    "Thane": "CTR-001",
+    "Ghodbunder": "CTR-001",
+    # Pune
     "Pune": "CTR-005",
 }
 
