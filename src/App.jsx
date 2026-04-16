@@ -63,39 +63,6 @@ function Header({ activeTab, user, onLogout }) {
           <span className="text-[11px] text-emerald-400 font-semibold tracking-wide">LIVE</span>
         </div>
 
-        {/* Search */}
-        <motion.div
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-colors ${
-            searchFocused
-              ? "border-emerald-500/50 bg-zinc-800/80"
-              : "border-zinc-800/50 bg-zinc-900/30"
-          }`}
-          animate={{ width: searchFocused ? 300 : 220 }}
-        >
-          <Search className="w-4 h-4 text-zinc-500 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search scans..."
-            className="bg-transparent text-sm text-zinc-300 outline-none w-full placeholder-zinc-600"
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-          />
-        </motion.div>
-
-        {/* Notifications */}
-        <motion.button
-          className="relative p-2.5 rounded-xl bg-zinc-900/30 border border-zinc-800/50 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Bell className="w-5 h-5" />
-          <motion.div
-            className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-zinc-950"
-            animate={{ scale: [1, 1.3, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        </motion.button>
-
         {/* Profile */}
         <motion.button
           className="flex items-center gap-3 px-4 py-2 rounded-xl bg-zinc-900/30 border border-zinc-800/50 hover:border-zinc-700 transition-colors"
@@ -126,7 +93,6 @@ function DashboardView() {
       <StatsCards />
       <ScanZone />
       <AnalyticsChart />
-      <RecentScans />
     </motion.div>
   );
 }
@@ -184,11 +150,6 @@ function Dashboard({ activeTab, setActiveTab, user, onLogout }) {
             {activeTab === "analytics" && (
               <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <AdvancedAnalytics />
-              </motion.div>
-            )}
-            {activeTab === "history" && (
-              <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <RecentScans />
               </motion.div>
             )}
             {activeTab === "govt-map" && (

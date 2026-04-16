@@ -43,7 +43,8 @@ function CitizenLogin({ onLogin }) {
   };
 
   return (
-    <div className="h-[100dvh] bg-[#131315] flex flex-col px-8 relative overflow-hidden">
+    <div className="h-[100dvh] w-screen bg-[#0a0a0b] flex items-center justify-center overflow-hidden">
+    <div className="h-full w-full sm:h-[90vh] sm:max-h-[900px] sm:w-[420px] sm:rounded-[2.5rem] sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/50 bg-[#131315] flex flex-col px-8 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[10%] right-[-10%] w-[300px] h-[300px] bg-[#4edea3]/[0.04] rounded-full blur-[80px]" />
       </div>
@@ -92,6 +93,7 @@ function CitizenLogin({ onLogin }) {
 
       <p className="text-center text-[11px] text-white/15 pb-8">No account needed · Your reports help fix roads</p>
     </div>
+    </div>
   );
 }
 
@@ -113,7 +115,8 @@ export default function App() {
   }
 
   return (
-    <div className="h-[100dvh] w-screen bg-[#131315] flex flex-col overflow-hidden">
+    <div className="h-[100dvh] w-screen bg-[#0a0a0b] flex items-center justify-center overflow-hidden">
+    <div className="h-full w-full sm:h-[90vh] sm:max-h-[900px] sm:w-[420px] sm:rounded-[2.5rem] sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/50 bg-[#131315] flex flex-col overflow-hidden relative">
       <main className="flex-1 min-h-0 relative">
         <AnimatePresence mode="wait">
           {activeTab === 'map' && (
@@ -144,7 +147,7 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <nav className="relative z-50 bg-[#0e0e10] border-t border-white/[0.06]">
+      <nav className="relative z-50 bg-[#0e0e10] border-t border-white/[0.06] shrink-0">
         <div className="flex items-stretch">
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
@@ -152,19 +155,20 @@ export default function App() {
               <button
                 key={tab.id}
                 onClick={() => tab.id === 'logout' ? handleLogout() : setActiveTab(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 relative transition-colors ${tab.id === 'logout' ? 'opacity-60' : ''}`}
+                className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 relative transition-colors ${tab.id === 'logout' ? 'opacity-60' : ''}`}
               >
                 {isActive && (
-                  <motion.div layoutId="tab-bg" className="absolute inset-x-3 inset-y-1 rounded-xl bg-[#4edea3]/[0.08]"
+                  <motion.div layoutId="tab-bg" className="absolute inset-x-2 inset-y-2 rounded-xl bg-[#4edea3]/[0.08]"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }} />
                 )}
-                <tab.icon className={`w-5 h-5 relative z-10 ${isActive ? 'text-[#4edea3]' : 'text-[#bbcabf]/40'}`} />
+                <tab.icon className={`w-[22px] h-[22px] relative z-10 ${isActive ? 'text-[#4edea3]' : 'text-[#bbcabf]/40'}`} />
                 <span className={`text-[10px] font-semibold relative z-10 ${isActive ? 'text-[#4edea3]' : 'text-[#bbcabf]/40'}`}>{tab.label}</span>
               </button>
             );
           })}
         </div>
       </nav>
+    </div>
     </div>
   );
 }

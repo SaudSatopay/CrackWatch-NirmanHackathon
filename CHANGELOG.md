@@ -5,6 +5,16 @@
 
 ---
 
+## v3.2.0 — Desktop phone-frame layout + UI polish
+- Public PWA now renders inside a centered 420×screen phone frame on desktop (rounded corners, border, shadow); unchanged full-screen on phones
+- Report page sector picker: centered vertically, square cards, larger emojis
+- Leaderboard podium: unified gold/silver/bronze pillars with flat gradient rank circles (replaces overflowing medal emojis)
+- Public app bottom nav: taller bar, no icon-border overlap
+- Govt dashboard header: removed search bar + notification bell
+- Removed "Full Scan" sector option (Dashboard + New Scan + Video/Live)
+- Removed History tab from sidebar + route
+- Removed Recent Scans section from Dashboard
+
 ## v3.1.1 — Demo data seeding + AI challenge fix
 - POST /gamification/seed-demo — seeds 10 demo users with realistic stats
 - Saud Vinchu at #1 (3200 XP, Lv.6, 45 reports, 21-day streak, 10 badges)

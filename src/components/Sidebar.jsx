@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Upload,
   BarChart3,
-  History,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -22,7 +21,6 @@ const navItems = [
   { icon: MapPin, label: "Reports Map", id: "govt-map" },
   { icon: Zap, label: "Repair Plan", id: "repair-plan" },
   { icon: BarChart3, label: "Analytics", id: "analytics" },
-  { icon: History, label: "History", id: "history" },
   { icon: Settings, label: "Settings", id: "settings" },
 ];
 

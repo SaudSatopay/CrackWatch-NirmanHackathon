@@ -251,7 +251,6 @@ const SECTORS = [
   { id: "building", emoji: "🏢", label: "Building", desc: "Wall cracks, concrete, spalling", models: "CrackSeg + CV" },
   { id: "pipeline", emoji: "🔧", label: "Pipeline", desc: "Leaks, corrosion, pipe breaks", models: "OpenCV" },
   { id: "bridge", emoji: "🌉", label: "Bridge & Flyover", desc: "Structural + road damage", models: "All models" },
-  { id: "all", emoji: "🔍", label: "Full Scan", desc: "Run all AI models", models: "3 models" },
 ];
 
 export default function VideoScan() {

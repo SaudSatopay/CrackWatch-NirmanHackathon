@@ -90,18 +90,27 @@ function Leaderboard({ data }) {
     <div className="space-y-2.5">
       {/* Top 3 podium */}
       {data.length >= 3 && (
-        <div className="flex items-end justify-center gap-3 mb-4 pt-4">
+        <div className="flex items-end justify-center gap-2 mb-8 pt-2">
           {[data[1], data[0], data[2]].map((e, i) => {
-            const heights = ['h-20', 'h-28', 'h-16'];
-            const order = [1, 0, 2];
+            const heights = ['h-24', 'h-28', 'h-20'];
+            const rank = [2, 1, 3][i];
+            const rankStyles = [
+              'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900 shadow-slate-300/30',
+              'bg-gradient-to-br from-[#ffd76b] to-[#ff9f1c] text-[#3a1d00] shadow-[#ffa94d]/40',
+              'bg-gradient-to-br from-amber-600 to-amber-800 text-amber-50 shadow-amber-700/30',
+            ];
+            const bgs = ['from-slate-400/[0.06]', 'from-[#ffa94d]/[0.14]', 'from-amber-700/[0.08]'];
+            const borders = ['border-slate-400/15', 'border-[#ffa94d]/30', 'border-amber-700/20'];
             return (
-              <motion.div key={order[i]} className="text-center flex-1" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
-                <p className="text-2xl mb-1">{medals[order[i]]}</p>
-                <p className="text-[11px] font-bold text-white truncate">{e.name.split(' ')[0]}</p>
-                <p className="text-[10px] text-[#4edea3] font-bold">{e.xp} XP</p>
-                <div className={`${heights[i]} bg-gradient-to-t from-[#4edea3]/10 to-transparent rounded-t-xl mt-2 flex items-end justify-center pb-2`}>
-                  <span className="text-[9px] text-white/30">Lv.{e.level}</span>
+              <motion.div key={rank} className={`flex-1 ${heights[i]} rounded-t-2xl bg-gradient-to-t ${bgs[i]} to-transparent border border-b-0 ${borders[i]} flex flex-col items-center px-2 pt-5 pb-2 relative`}
+                initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
+                <div className={`w-9 h-9 rounded-full ${rankStyles[i]} flex items-center justify-center font-black text-sm shadow-lg mb-2`} style={{ fontFamily: 'Space Grotesk' }}>
+                  {rank}
                 </div>
+                <p className="text-[11px] font-bold text-white truncate w-full text-center">{e.name.split(' ')[0]}</p>
+                <p className="text-[10px] text-[#4edea3] font-bold mt-0.5">{e.xp} XP</p>
+                <div className="flex-1" />
+                <span className="text-[9px] text-white/40 font-bold tracking-wider">LV.{e.level}</span>
               </motion.div>
             );
           })}

@@ -279,9 +279,10 @@ export default function ReportPage() {
       <div className="px-5 pb-8 space-y-5">
         {/* Sector picker — must choose first */}
         {!sector ? (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-3 block">What are you reporting?</label>
-            <div className="grid grid-cols-2 gap-3">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="min-h-[calc(100dvh-12rem)] flex flex-col justify-center">
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-5 block">What are you reporting?</label>
+            <div className="grid grid-cols-2 gap-4">
               {[
                 { id: 'road', emoji: '🛣️', label: 'Road', desc: 'Potholes & cracks' },
                 { id: 'building', emoji: '🏢', label: 'Building', desc: 'Wall cracks' },
@@ -289,12 +290,14 @@ export default function ReportPage() {
                 { id: 'bridge', emoji: '🌉', label: 'Bridge', desc: 'Structural damage' },
               ].map((s, i) => (
                 <motion.button key={s.id} onClick={() => setSector(s.id)}
-                  className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-[#4edea3]/30 hover:bg-[#4edea3]/5 transition-all text-left"
+                  className="aspect-square p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-[#4edea3]/30 hover:bg-[#4edea3]/5 transition-all flex flex-col items-center justify-center gap-3"
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                   whileTap={{ scale: 0.97 }}>
-                  <span className="text-2xl block mb-2">{s.emoji}</span>
-                  <h4 className="text-sm font-bold text-white">{s.label}</h4>
-                  <p className="text-[10px] text-white/30 mt-0.5">{s.desc}</p>
+                  <span className="text-5xl block leading-none">{s.emoji}</span>
+                  <div className="text-center">
+                    <h4 className="text-base font-bold text-white">{s.label}</h4>
+                    <p className="text-[11px] text-white/40 mt-1">{s.desc}</p>
+                  </div>
                 </motion.button>
               ))}
             </div>
