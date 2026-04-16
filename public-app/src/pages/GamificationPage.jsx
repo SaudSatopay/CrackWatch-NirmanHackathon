@@ -208,45 +208,48 @@ function AIChallenge({ userId }) {
 
       {round && (
         <>
-          <div className="bg-gradient-to-br from-violet-500/[0.06] to-[#5de6ff]/[0.04] rounded-xl p-5 border border-violet-500/10">
-            <p className="text-[10px] text-violet-400 uppercase tracking-wider font-bold mb-3">🤖 Identify the damage</p>
-            <p className="text-base text-white font-medium leading-relaxed">"{round.scenario}"</p>
+          {/* Scenario card — big and visible */}
+          <div style={{ background: '#1e1b2e', border: '1px solid #3b2d6b', borderRadius: 16, padding: 24 }}>
+            <p style={{ fontSize: 11, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>🤖 IDENTIFY THE DAMAGE</p>
+            <p style={{ fontSize: 18, color: '#e5e1e4', fontWeight: 600, lineHeight: 1.5 }}>"{round.scenario}"</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          {/* Options — 2x2 grid with big tap targets */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {round.options.map((opt) => {
               const isSelected = selected === opt;
               const isCorrect = result && opt === round.correct_answer;
               const isWrong = result && isSelected && !result.correct;
+              const bg = isCorrect ? '#0d3320' : isWrong ? '#3d1515' : isSelected ? '#152535' : '#1c1b1d';
+              const border = isCorrect ? '#4edea3' : isWrong ? '#ff6b6b' : isSelected ? '#5de6ff' : '#2a2a2c';
+              const color = isCorrect ? '#4edea3' : isWrong ? '#ff6b6b' : isSelected ? '#5de6ff' : '#bbcabf';
               return (
                 <motion.button key={opt} onClick={() => !result && submitAnswer(opt)} disabled={!!result}
-                  className={`p-4 rounded-xl text-sm font-semibold text-left transition-all border ${
-                    isCorrect ? 'bg-[#4edea3]/10 border-[#4edea3]/30 text-[#4edea3]' :
-                    isWrong ? 'bg-[#ff6b6b]/10 border-[#ff6b6b]/30 text-[#ff6b6b]' :
-                    isSelected ? 'bg-[#5de6ff]/10 border-[#5de6ff]/30 text-[#5de6ff]' :
-                    'bg-white/[0.03] border-white/[0.04] text-white/60 active:bg-white/[0.06]'
-                  }`} whileTap={!result ? { scale: 0.97 } : {}}>
-                  {opt} {isCorrect && '✓'} {isWrong && '✗'}
+                  style={{ background: bg, border: `2px solid ${border}`, borderRadius: 14, padding: '18px 16px', textAlign: 'left', fontSize: 14, fontWeight: 600, color, cursor: result ? 'default' : 'pointer' }}
+                  whileTap={!result ? { scale: 0.97 } : {}}>
+                  {opt} {isCorrect ? ' ✓' : ''}{isWrong ? ' ✗' : ''}
                 </motion.button>
               );
             })}
           </div>
 
+          {/* Result */}
           {result && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-xl text-center ${result.correct ? 'bg-[#4edea3]/[0.06]' : 'bg-[#ff6b6b]/[0.06]'}`}>
-              <p className={`text-lg font-bold ${result.correct ? 'text-[#4edea3]' : 'text-[#ff6b6b]'}`}>
+              style={{ background: result.correct ? '#0d3320' : '#3d1515', borderRadius: 14, padding: 20, textAlign: 'center', border: `1px solid ${result.correct ? '#4edea355' : '#ff6b6b55'}` }}>
+              <p style={{ fontSize: 20, fontWeight: 700, color: result.correct ? '#4edea3' : '#ff6b6b' }}>
                 {result.correct ? '🎉 Correct!' : '❌ Wrong!'}
               </p>
-              <p className="text-xs text-white/40 mt-1">
+              <p style={{ fontSize: 13, color: '#bbcabf88', marginTop: 6 }}>
                 {result.correct ? '+50 XP earned' : `Answer was: ${result.correct_answer}`}
               </p>
             </motion.div>
           )}
 
+          {/* Next round button */}
           {result && (
             <motion.button onClick={loadRound} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] font-bold text-sm">
+              style={{ width: '100%', padding: '16px 0', borderRadius: 14, background: 'linear-gradient(135deg, #4edea3, #10b981)', color: '#002113', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer' }}>
               Next Round →
             </motion.button>
           )}
@@ -395,18 +398,35 @@ export default function GamificationPage({ userName }) {
               </div>
               <AIChallenge userId={userId} />
               {/* How it works card */}
-              <div className="bg-white/[0.02] rounded-xl p-5 border border-white/[0.04] mt-2">
-                <p className="text-xs text-white/40 font-bold mb-3">How it works</p>
-                <div className="grid grid-cols-3 gap-3">
+              <div style={{ background: '#1c1b1d', borderRadius: 14, padding: 24, border: '1px solid #2a2a2c' }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#e5e1e4', marginBottom: 16 }}>How it works</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
                   {[
-                    { step: '1', title: 'Read', desc: 'AI describes a damage scenario' },
-                    { step: '2', title: 'Guess', desc: 'Pick the correct damage type' },
-                    { step: '3', title: 'Earn', desc: '+50 XP for correct answers' },
+                    { step: '1', title: 'Read', desc: 'AI describes a damage scenario', color: '#4edea3' },
+                    { step: '2', title: 'Guess', desc: 'Pick the correct damage type', color: '#5de6ff' },
+                    { step: '3', title: 'Earn', desc: '+50 XP for correct answers', color: '#ffa94d' },
                   ].map(s => (
-                    <div key={s.step} className="text-center">
-                      <div className="w-8 h-8 rounded-full bg-[#4edea3]/10 text-[#4edea3] text-sm font-bold flex items-center justify-center mx-auto mb-2">{s.step}</div>
-                      <p className="text-xs font-semibold text-white">{s.title}</p>
-                      <p className="text-[10px] text-white/25 mt-0.5">{s.desc}</p>
+                    <div key={s.step} style={{ textAlign: 'center' }}>
+                      <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${s.color}15`, color: s.color, fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>{s.step}</div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#e5e1e4' }}>{s.title}</p>
+                      <p style={{ fontSize: 11, color: '#bbcabf66', marginTop: 4 }}>{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stats card */}
+              <div style={{ background: '#1c1b1d', borderRadius: 14, padding: 24, border: '1px solid #2a2a2c' }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#e5e1e4', marginBottom: 16 }}>🏆 Earn Rewards</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                  {[
+                    { label: 'Correct', value: '+50 XP', color: '#4edea3' },
+                    { label: 'Wrong', value: '-10 XP', color: '#ff6b6b' },
+                    { label: '80%+ Accuracy', value: '🤖 AI Master badge', color: '#ffa94d' },
+                  ].map((r, i) => (
+                    <div key={i} style={{ textAlign: 'center', background: '#13131588', borderRadius: 10, padding: 12 }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: r.color }}>{r.value}</p>
+                      <p style={{ fontSize: 10, color: '#bbcabf44', marginTop: 4 }}>{r.label}</p>
                     </div>
                   ))}
                 </div>
