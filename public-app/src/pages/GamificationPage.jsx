@@ -298,13 +298,16 @@ export default function GamificationPage({ userName }) {
 
       <div className="px-5 pb-8">
         {/* Tab selector */}
-        <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] mb-5">
+        <div className="grid grid-cols-4 gap-2 mb-5">
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[11px] font-semibold transition-all ${
-                tab === t.id ? 'bg-[#4edea3]/10 text-[#4edea3]' : 'text-white/25'
+              className={`flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl text-xs font-bold transition-all border ${
+                tab === t.id
+                  ? 'bg-[#4edea3]/10 text-[#4edea3] border-[#4edea3]/20'
+                  : 'bg-white/[0.03] text-white/40 border-transparent active:bg-white/[0.06]'
               }`}>
-              <t.icon className="w-3.5 h-3.5" /> {t.label}
+              <t.icon className="w-5 h-5" />
+              {t.label}
             </button>
           ))}
         </div>
