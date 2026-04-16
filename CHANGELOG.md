@@ -5,6 +5,13 @@
 
 ---
 
+## v3.4.0 — Reject reports with no detectable damage
+- Backend /public/report: confidence threshold 0.20 → 0.30 (reduces false positives from textures/noise)
+- Added early-exit: if no detection ≥ 0.35 confidence, return `status: "no_damage"` without creating a report
+- Response includes annotated_image, max_confidence, and tips for better photos
+- Public app: new `no_damage` screen with blue friendly alert, annotated preview, confidence score, photography tips, "Try Another Photo" button
+- Fixes: clean photos (selfies, cats, plain walls) no longer auto-approved as genuine damage reports
+
 ## v3.3.14 — Login page: tone down spacing (v3.3.13 was too spacey)
 - Name wrapper marginBottom: 32 → 24
 - Password wrapper marginBottom: 56 → 28 (the 56 gap before Get Started looked abnormal)

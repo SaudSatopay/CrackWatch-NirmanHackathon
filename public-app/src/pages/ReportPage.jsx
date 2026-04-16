@@ -63,6 +63,53 @@ export default function ReportPage() {
 
   const reset = () => { setImage(null); setImageFile(null); setDescription(''); setLocation(null); setResult(null); };
 
+  // NO DAMAGE — AI found no significant damage in the photo
+  if (result && result.status === 'no_damage') {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="px-5 pt-8 pb-8 space-y-5">
+          <motion.div className="text-center" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+            <div className="w-20 h-20 rounded-full bg-[#74c0fc]/10 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-10 h-10 text-[#74c0fc]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#74c0fc]" style={{ fontFamily: 'Space Grotesk' }}>No Damage Detected</h2>
+            <p className="text-sm text-white/40 mt-2 px-4">{result.message}</p>
+          </motion.div>
+
+          {result.annotated_image && (
+            <motion.div className="rounded-xl overflow-hidden"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <img src={`data:image/jpeg;base64,${result.annotated_image}`} alt="Analyzed" className="w-full h-48 object-cover" />
+            </motion.div>
+          )}
+
+          {typeof result.max_confidence === 'number' && (
+            <div className="bg-white/[0.03] rounded-xl p-4 text-center">
+              <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold mb-1">Highest AI confidence</p>
+              <p className="text-2xl font-bold text-white/60" style={{ fontFamily: 'Space Grotesk' }}>
+                {(result.max_confidence * 100).toFixed(0)}%
+              </p>
+              <p className="text-[11px] text-white/30 mt-1">Minimum required: 35%</p>
+            </div>
+          )}
+
+          {result.hint && (
+            <div className="bg-[#74c0fc]/[0.05] rounded-xl p-4 border border-[#74c0fc]/10">
+              <p className="text-[11px] text-[#74c0fc] font-bold uppercase tracking-wider mb-2">💡 Tips</p>
+              <p className="text-xs text-white/50 leading-relaxed">{result.hint}</p>
+            </div>
+          )}
+
+          <motion.button onClick={reset}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] font-bold text-sm"
+            whileTap={{ scale: 0.97 }}>
+            Try Another Photo
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
+
   // REJECTED — fake report detected
   if (result && result.status === 'rejected') {
     return (

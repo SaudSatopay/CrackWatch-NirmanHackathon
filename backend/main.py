@@ -649,12 +649,27 @@ async def submit_citizen_report(
     # Run AI detection on citizen's photo
     start_time = time.time()
     detector = get_detector()
-    result = detector.detect_from_bytes(image_bytes, 0.20, sector)
+    result = detector.detect_from_bytes(image_bytes, 0.30, sector)
     inference_time = round((time.time() - start_time) * 1000, 1)
 
     scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
     ranked = rank_priorities(scored)
     stats = compute_overall_stats(ranked)
+
+    # ── Early exit: no substantial damage detected ──
+    # Filter out weak/ambiguous detections; require at least one with decent confidence
+    CONF_THRESHOLD = 0.35
+    strong_detections = [d for d in ranked if d.get("confidence", 0) >= CONF_THRESHOLD]
+    if not strong_detections:
+        return {
+            "id": None,
+            "status": "no_damage",
+            "message": "No infrastructure damage detected in this photo. Please take a clearer photo of road, building, pipeline, or bridge damage.",
+            "detections_count": len(ranked),
+            "max_confidence": max([d.get("confidence", 0) for d in ranked], default=0),
+            "annotated_image": result["annotated_image"],
+            "hint": "Tips: (1) Stand closer to the damage. (2) Good lighting helps. (3) Make sure the crack/pothole fills most of the frame.",
+        }
 
     report_id = f"RPT-{str(uuid.uuid4())[:6].upper()}"
     report = {
