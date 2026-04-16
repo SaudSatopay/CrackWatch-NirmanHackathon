@@ -5,13 +5,15 @@ CRACKWATCH Backend — FastAPI server for infrastructure damage detection.
 import os
 import uuid
 import time
+import io
 from datetime import datetime, timezone
 from typing import Optional
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from dotenv import load_dotenv
 
 from inference import get_detector, check_image_authenticity
 from severity import compute_severity, compute_overall_stats
@@ -24,6 +26,13 @@ from gamification import (
     award_points, get_leaderboard, get_user_profile_full, get_daily_challenges,
     community_vote, ai_challenge_round, check_ai_challenge, get_authority_fix_streaks,
 )
+
+# Load .env (Twilio credentials etc.)
+load_dotenv(Path(__file__).parent / ".env")
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -777,6 +786,223 @@ async def submit_citizen_report(
         ),
         "fraud_check": fraud_report,
     }
+
+
+# ============================================================
+# WHATSAPP BOT (Twilio Sandbox)
+# ============================================================
+
+def _twiml(text: str) -> Response:
+    """Helper — wrap text in TwiML XML for Twilio to parse."""
+    # Escape XML special chars
+    safe = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{safe}</Message></Response>'
+    return Response(content=xml, media_type="application/xml")
+
+
+async def _download_twilio_media(url: str) -> Optional[bytes]:
+    """Fetch an image Twilio is hosting. Requires Account SID + Auth Token."""
+    import httpx
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+            r = await client.get(url, auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN))
+            if r.status_code == 200:
+                return r.content
+    except Exception as e:
+        print(f"[WhatsApp] Media download failed: {e}")
+    return None
+
+
+def _extract_gps_from_exif(image_bytes: bytes):
+    """Pull GPS lat/lng from image EXIF data. Returns (lat, lng) or None."""
+    try:
+        from PIL import Image as _PILImage
+        from PIL.ExifTags import TAGS, GPSTAGS
+        img = _PILImage.open(io.BytesIO(image_bytes))
+        exif = img._getexif() if hasattr(img, "_getexif") else None
+        if not exif:
+            return None
+        for tag_id, val in exif.items():
+            if TAGS.get(tag_id) == "GPSInfo":
+                gps = {GPSTAGS.get(k, k): v for k, v in val.items()}
+                def _dms_to_deg(dms, ref):
+                    d = float(dms[0]); m = float(dms[1]); s = float(dms[2])
+                    deg = d + m/60 + s/3600
+                    if ref in ("S", "W"):
+                        deg = -deg
+                    return deg
+                lat = _dms_to_deg(gps["GPSLatitude"], gps.get("GPSLatitudeRef", "N"))
+                lng = _dms_to_deg(gps["GPSLongitude"], gps.get("GPSLongitudeRef", "E"))
+                return (lat, lng)
+    except Exception as e:
+        print(f"[WhatsApp] EXIF parse failed: {e}")
+    return None
+
+
+# Per-phone session state — tracks last interaction for multi-step convos
+whatsapp_sessions: dict[str, dict] = {}
+
+
+@app.post("/whatsapp/webhook")
+async def whatsapp_webhook(
+    From: str = Form(...),
+    Body: str = Form(default=""),
+    NumMedia: int = Form(default=0),
+    MediaUrl0: Optional[str] = Form(default=None),
+    MediaContentType0: Optional[str] = Form(default=None),
+    Latitude: Optional[float] = Form(default=None),
+    Longitude: Optional[float] = Form(default=None),
+    ProfileName: Optional[str] = Form(default="Citizen"),
+):
+    """
+    Twilio WhatsApp webhook — receives incoming citizen messages.
+    Flow: user sends photo → we detect damage → reply with results + report ID.
+    """
+    body = (Body or "").strip().lower()
+    phone = From.replace("whatsapp:", "")
+    reporter = ProfileName or f"WhatsApp {phone[-4:]}"
+
+    # Greeting / help message
+    if NumMedia == 0 and body in ("hi", "hello", "help", "start", ""):
+        return _twiml(
+            "👋 Welcome to *CRACKWATCH* — India's AI-powered infrastructure damage reporter.\n\n"
+            "📸 Send a photo of a pothole, crack, or damaged infrastructure and I'll:\n"
+            "• Detect the damage type with AI\n"
+            "• Estimate repair cost\n"
+            "• Submit it to the local authority\n\n"
+            "💡 Tip: share location (attachment → Location) for accurate mapping."
+        )
+
+    # No image sent
+    if NumMedia == 0:
+        return _twiml("📸 Please send a *photo* of the damage. Reply 'help' for instructions.")
+
+    # Only accept images
+    if not (MediaContentType0 or "").startswith("image/"):
+        return _twiml("⚠️ Only image attachments are supported right now.")
+
+    # Download image from Twilio
+    image_bytes = await _download_twilio_media(MediaUrl0)
+    if not image_bytes:
+        return _twiml("❌ Couldn't download your image. Please try again.")
+
+    # Resolve GPS — message location > EXIF > Mumbai default
+    lat, lng, loc_source = None, None, "default"
+    if Latitude is not None and Longitude is not None:
+        lat, lng, loc_source = float(Latitude), float(Longitude), "whatsapp_location"
+    else:
+        exif = _extract_gps_from_exif(image_bytes)
+        if exif:
+            lat, lng, loc_source = exif[0], exif[1], "exif"
+        else:
+            lat, lng, loc_source = 19.033, 73.030, "default_mumbai"
+
+    # Run AI detection
+    detector = get_detector()
+    result = detector.detect_from_bytes(image_bytes, 0.30, "all")
+    scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
+    ranked = rank_priorities(scored)
+    stats = compute_overall_stats(ranked)
+
+    # No-damage guard (same as /public/report v3.4.0)
+    strong = [d for d in ranked if d.get("confidence", 0) >= 0.35]
+    if not strong:
+        return _twiml(
+            "🤖 AI analysis complete.\n\n"
+            "❌ *No clear damage detected* in this photo.\n\n"
+            "💡 Tips for a better photo:\n"
+            "• Stand closer to the damage\n"
+            "• Good lighting helps\n"
+            "• Fill the frame with the crack/pothole\n\n"
+            "Try another photo!"
+        )
+
+    # Create the report
+    report_id = f"RPT-{str(uuid.uuid4())[:6].upper()}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+    report = {
+        "id": report_id,
+        "timestamp": now_iso,
+        "reporter": reporter,
+        "description": Body or "(via WhatsApp)",
+        "location": {"latitude": lat, "longitude": lng, "name": f"WhatsApp ({loc_source})"},
+        "image_filename": f"whatsapp_{phone[-4:]}.jpg",
+        "annotated_image": result["annotated_image"],
+        "detections": ranked,
+        "stats": stats,
+        "inference_time_ms": 0,
+        "status": "submitted",
+        "status_history": [{"status": "submitted", "time": now_iso, "note": "WhatsApp report received"}],
+        "assigned_to": None,
+        "fix_date": None,
+        "upvotes": 1,
+        "source": "whatsapp",
+        "whatsapp_phone": phone,
+        "trust_score": 90,
+    }
+    citizen_reports.append(report)
+    detection_store.append({
+        "id": report_id,
+        "timestamp": now_iso,
+        "filename": report["image_filename"],
+        "image_width": result["image_width"],
+        "image_height": result["image_height"],
+        "detections": ranked,
+        "annotated_image": result["annotated_image"],
+        "stats": stats,
+        "inference_time_ms": 0,
+        "location": report["location"],
+        "source": "whatsapp_report",
+        "trust_score": 90,
+    })
+
+    # Award gamification
+    gami = {}
+    try:
+        gami = award_points(reporter, report, ranked)
+    except Exception as e:
+        print(f"[WhatsApp] Gamification error: {e}")
+
+    # Build reply
+    top = strong[0]
+    damage_name = top.get("display_name", "Damage")
+    severity = top.get("severity", 0)
+    cost = (top.get("cost") or {}).get("cost_estimated", 0)
+    repair_method = (top.get("cost") or {}).get("repair_method", "Standard repair")
+    icon = "🔴" if severity >= 70 else "🟡" if severity >= 40 else "🟢"
+
+    lines = [
+        f"✅ *Report {report_id}* submitted!",
+        "",
+        f"🤖 AI Detection:",
+        f"{icon} *{damage_name}*",
+        f"• Severity: {severity:.0f}/100",
+        f"• Confidence: {top.get('confidence', 0)*100:.0f}%",
+        f"• {len(ranked)} defect(s) found",
+        "",
+        f"💰 Estimated repair: ₹{cost:,}",
+        f"🔧 Method: {repair_method}",
+        "",
+        f"📍 Location: {lat:.4f}, {lng:.4f}",
+    ]
+    if gami and gami.get("points_earned", 0) > 0:
+        lines += [
+            "",
+            f"🏆 +{gami['xp_earned']} XP · +{gami['coins_earned']} coins",
+            f"📊 Level {gami.get('level', 1)}" + (f" · 🔥 {gami['streak_days']}-day streak" if gami.get("streak_days", 0) > 0 else ""),
+        ]
+        if gami.get("new_achievements"):
+            lines.append(f"🏅 New badge: {gami['new_achievements'][0]['name']}")
+    lines += [
+        "",
+        "🔗 Track on the public map.",
+        "Authority has been notified. Thank you!",
+    ]
+
+    # Save session state
+    whatsapp_sessions[phone] = {"last_report_id": report_id, "last_interaction": now_iso}
+
+    return _twiml("\n".join(lines))
 
 
 # ============================================================

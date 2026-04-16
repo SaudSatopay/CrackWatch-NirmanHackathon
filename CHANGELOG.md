@@ -5,6 +5,18 @@
 
 ---
 
+## v3.5.0 — WhatsApp reporting bot (Twilio Sandbox)
+- New endpoint: POST /whatsapp/webhook (Twilio WhatsApp incoming-message webhook)
+- Citizens send a photo via WhatsApp to Twilio sandbox number (+1 415 523 8886)
+- Backend downloads media from Twilio (auth-protected), extracts GPS from EXIF if present, runs full AI detection pipeline
+- Reuses existing detection, severity, cost, gamification logic
+- No-damage guard (v3.4.0 threshold) applied — weak detections reply with tips instead of creating a ghost report
+- Reply includes: report ID, damage type with severity+confidence, estimated cost, repair method, GPS, XP/coins earned
+- Session state tracked per phone number (whatsapp_sessions dict)
+- Added dependencies: twilio 9.3, python-dotenv 1.0, httpx 0.27
+- Credentials stored in gitignored backend/.env
+- .gitignore: added `.env.*` pattern to cover future env variants
+
 ## v3.4.0 — Reject reports with no detectable damage
 - Backend /public/report: confidence threshold 0.20 → 0.30 (reduces false positives from textures/noise)
 - Added early-exit: if no detection ≥ 0.35 confidence, return `status: "no_damage"` without creating a report

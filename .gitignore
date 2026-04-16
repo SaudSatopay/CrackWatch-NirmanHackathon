@@ -26,3 +26,4 @@ dist-ssr
 # Local SSL certs (do not commit — machine-specific)
 *.pem
 .env
+.env.*
