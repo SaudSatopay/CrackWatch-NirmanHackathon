@@ -5,6 +5,16 @@
 
 ---
 
+## v2.0.3 — Govt toggle for fraud detection system
+- Government Settings page: toggle switch for Fake Report Detection
+- Toggle ON: 5-layer fraud check runs on every citizen report
+- Toggle OFF: all reports auto-approved without verification
+- Green/red status indicator with explanation text
+- ShieldCheck/ShieldOff icons
+- GET /admin/settings — read current setting
+- PATCH /admin/settings — update setting
+- Backend skips fraud_detection.run_full_fraud_check when disabled
+
 ## v2.0.2 — Show fraud detection results to user
 - REJECTED reports: red X icon, trust score, "Why it was rejected" with flag details
 - UNDER REVIEW reports: orange warning, trust score, flagged issues, "inspector will review in 24hrs"

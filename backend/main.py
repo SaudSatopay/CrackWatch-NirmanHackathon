@@ -38,6 +38,11 @@ app.add_middleware(
 detection_store: list[dict] = []
 alert_store: list[dict] = []
 
+# System settings — controllable by government admin
+system_settings = {
+    "fraud_detection_enabled": True,
+}
+
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -97,6 +102,20 @@ async def get_sectors():
     """List available infrastructure sectors for targeted detection."""
     detector = get_detector()
     return {"sectors": detector.get_available_sectors()}
+
+
+@app.get("/admin/settings")
+async def get_settings():
+    """ADMIN: Get system settings."""
+    return system_settings
+
+
+@app.patch("/admin/settings")
+async def update_settings(fraud_detection_enabled: Optional[bool] = Form(default=None)):
+    """ADMIN: Update system settings."""
+    if fraud_detection_enabled is not None:
+        system_settings["fraud_detection_enabled"] = fraud_detection_enabled
+    return system_settings
 
 
 @app.post("/detect")
@@ -562,22 +581,25 @@ async def submit_citizen_report(
         "upvotes": 1,
     }
 
-    # ── Run fraud detection ──
-    from PIL import Image as _PILImage
-    import io as _io
-    try:
-        pil_img = _PILImage.open(_io.BytesIO(image_bytes)).convert("RGB")
-        fraud_report = run_full_fraud_check(
-            image=pil_img,
-            latitude=latitude,
-            longitude=longitude,
-            detections=ranked,
-            existing_reports=citizen_reports,
-            user_token=reporter_name or "anonymous",
-        )
-    except Exception as e:
-        print(f"[CRACKWATCH] Fraud check error: {e}")
-        fraud_report = {"combined_trust_score": 75, "verdict": "trusted", "action": "auto_approve", "flags": [], "checks": {}}
+    # ── Run fraud detection (if enabled by govt admin) ──
+    if not system_settings.get("fraud_detection_enabled", True):
+        fraud_report = {"combined_trust_score": 100, "verdict": "trusted", "action": "auto_approve", "flags": [], "scores": {}, "checks": {}, "skipped": True}
+    else:
+        from PIL import Image as _PILImage
+        import io as _io
+        try:
+            pil_img = _PILImage.open(_io.BytesIO(image_bytes)).convert("RGB")
+            fraud_report = run_full_fraud_check(
+                image=pil_img,
+                latitude=latitude,
+                longitude=longitude,
+                detections=ranked,
+                existing_reports=citizen_reports,
+                user_token=reporter_name or "anonymous",
+            )
+        except Exception as e:
+            print(f"[CRACKWATCH] Fraud check error: {e}")
+            fraud_report = {"combined_trust_score": 75, "verdict": "trusted", "action": "auto_approve", "flags": [], "checks": {}}
 
     report["fraud_check"] = fraud_report
     report["trust_score"] = fraud_report["combined_trust_score"]
