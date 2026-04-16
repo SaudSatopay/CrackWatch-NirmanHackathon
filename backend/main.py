@@ -17,6 +17,7 @@ from inference import get_detector, check_image_authenticity
 from severity import compute_severity, compute_overall_stats
 from cost_engine import estimate_cost, rank_priorities, generate_repair_plan, explain_severity
 from auth import login, register_citizen, verify_token
+from fraud_detection import run_full_fraud_check
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -549,6 +550,37 @@ async def submit_citizen_report(
         "upvotes": 1,
     }
 
+    # ── Run fraud detection ──
+    from PIL import Image as _PILImage
+    import io as _io
+    try:
+        pil_img = _PILImage.open(_io.BytesIO(image_bytes)).convert("RGB")
+        fraud_report = run_full_fraud_check(
+            image=pil_img,
+            latitude=latitude,
+            longitude=longitude,
+            detections=ranked,
+            existing_reports=citizen_reports,
+            user_token=reporter_name or "anonymous",
+        )
+    except Exception as e:
+        print(f"[CRACKWATCH] Fraud check error: {e}")
+        fraud_report = {"combined_trust_score": 75, "verdict": "trusted", "action": "auto_approve", "flags": [], "checks": {}}
+
+    report["fraud_check"] = fraud_report
+    report["trust_score"] = fraud_report["combined_trust_score"]
+
+    # Block if trust score too low
+    if fraud_report["action"] == "block_submission":
+        return {
+            "id": None,
+            "status": "rejected",
+            "message": "Report rejected — our system detected this may not be a genuine damage report.",
+            "trust_score": fraud_report["combined_trust_score"],
+            "flags": fraud_report["flags"],
+            "fraud_check": fraud_report,
+        }
+
     citizen_reports.append(report)
 
     # Also add to govt detection_store
@@ -564,18 +596,27 @@ async def submit_citizen_report(
         "inference_time_ms": inference_time,
         "location": report["location"],
         "source": "citizen_report",
+        "trust_score": fraud_report["combined_trust_score"],
     })
 
     return {
         "id": report_id,
-        "status": "submitted",
+        "status": "submitted" if fraud_report["action"] == "auto_approve" else "under_review",
         "detections_count": len(ranked),
         "severity_summary": {
             "critical": stats["critical_count"],
             "warning": stats["warning_count"],
             "minor": stats["minor_count"],
         },
-        "message": "Report submitted! Authorities have been notified.",
+        "trust_score": fraud_report["combined_trust_score"],
+        "trust_verdict": fraud_report["verdict"],
+        "flags": fraud_report["flags"],
+        "message": (
+            "Report submitted! Authorities have been notified."
+            if fraud_report["action"] == "auto_approve"
+            else "Report submitted for manual review — some anomalies were detected."
+        ),
+        "fraud_check": fraud_report,
     }
 
 
