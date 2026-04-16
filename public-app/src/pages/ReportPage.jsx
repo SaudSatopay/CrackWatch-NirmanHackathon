@@ -218,8 +218,40 @@ export default function ReportPage() {
               <span className="text-sm font-bold text-[#4edea3]">{result.trust_score}% ✓</span>
             </motion.div>
           )}
+          {/* Gamification rewards */}
+          {result.gamification && result.gamification.points_earned > 0 && (
+            <motion.div className="bg-gradient-to-r from-[#ffa94d]/[0.06] to-[#4edea3]/[0.06] rounded-xl p-4 border border-[#ffa94d]/10"
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.38 }}>
+              <p className="text-[10px] text-[#ffa94d] uppercase tracking-wider font-bold mb-2">🏆 Rewards Earned!</p>
+              <div className="flex gap-3 justify-center mb-2">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-[#4edea3]">+{result.gamification.xp_earned}</div>
+                  <div className="text-[8px] text-white/30">XP</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-[#ffa94d]">+{result.gamification.coins_earned}</div>
+                  <div className="text-[8px] text-white/30">Coins</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">Lv.{result.gamification.level}</div>
+                  <div className="text-[8px] text-white/30">Level</div>
+                </div>
+              </div>
+              {result.gamification.streak_days > 0 && (
+                <p className="text-center text-[10px] text-[#ff6b6b]">🔥 {result.gamification.streak_days}-day streak!</p>
+              )}
+              {result.gamification.new_achievements?.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-white/[0.04]">
+                  {result.gamification.new_achievements.map((a, i) => (
+                    <p key={i} className="text-center text-xs text-[#ffa94d] font-bold">🏅 New Badge: {a.name}</p>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
           <motion.div className="bg-[#4edea3]/[0.05] rounded-xl p-3 border border-[#4edea3]/10 text-center"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}>
             <p className="text-xs text-[#4edea3] font-semibold">✓ Authorities have been notified</p>
             <p className="text-[10px] text-white/30 mt-0.5">Track status on the Map tab</p>
           </motion.div>
