@@ -65,20 +65,19 @@ export default function SettingsPage({ user, onLogout }) {
             </div>
 
             {/* Toggle switch */}
-            <motion.button
+            <button
               onClick={toggleFraud}
               disabled={toggling}
-              className={`relative w-14 h-7 rounded-full transition-colors ${
+              className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
                 fraudEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
               }`}
-              whileTap={{ scale: 0.95 }}
             >
-              <motion.div
-                className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md"
-                animate={{ left: fraudEnabled ? '1.75rem' : '0.125rem' }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              <div
+                className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 ${
+                  fraudEnabled ? 'left-[1.75rem]' : 'left-[0.125rem]'
+                }`}
               />
-            </motion.button>
+            </button>
           </div>
 
           {/* Status info */}
