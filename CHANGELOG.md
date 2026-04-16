@@ -5,6 +5,12 @@
 
 ---
 
+## v1.5.5 — Fix upvote count not incrementing
+- Upvote counts now stored in localStorage (not just IDs)
+- Demo reports (hardcoded) upvotes persist across refresh
+- Real API reports upvote via backend + localStorage fallback
+- Counts applied on mount so upvotes survive page reload
+
 ## v1.5.4 — Skip empty frames in video detection
 - Video /detect/video only returns frames where damage was found
 - Frames with zero detections are excluded from results
