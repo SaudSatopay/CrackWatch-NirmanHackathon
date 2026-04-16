@@ -5,6 +5,13 @@
 
 ---
 
+## v3.3.10 — De-clutter Rewards page (profile + achievements)
+- ProfileCard: added shadow-xl for depth, mb-5 → mb-6 between header/XP bar/stats
+- Inner stat cards (Day Streak/Badges/Reports): py-3 → py-4, added subtle border
+- Achievements section: mt-4 → mt-8 (bigger gap from profile card)
+- Achievement grid: gap-2.5 → gap-3, cards p-3.5 → p-4
+- Earned achievement cards: added shadow-lg + stronger border
+
 ## v3.3.9 — Report page form fills full viewport + bigger buttons
 - Post-sector form wrapped in flex-col with min-h-[calc(100dvh-10rem)]
 - Photo upload zone grows to fill available space (flex-[2], min-h-[180px])

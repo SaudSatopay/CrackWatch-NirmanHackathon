@@ -10,8 +10,8 @@ function ProfileCard({ profile }) {
   const xpPct = Math.min(100, (profile.xp / xpForNext) * 100);
 
   return (
-    <div className="bg-gradient-to-br from-[#4edea3]/[0.08] to-[#5de6ff]/[0.04] rounded-2xl p-5 border border-[#4edea3]/15">
-      <div className="flex items-center gap-4 mb-5">
+    <div className="bg-gradient-to-br from-[#4edea3]/[0.08] to-[#5de6ff]/[0.04] rounded-2xl p-5 border border-[#4edea3]/15 shadow-xl shadow-black/40">
+      <div className="flex items-center gap-4 mb-6">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#4edea3] to-[#5de6ff] flex items-center justify-center shadow-lg shadow-[#4edea3]/20">
           <span className="text-3xl font-black text-black" style={{ fontFamily: 'Space Grotesk' }}>{profile.level}</span>
         </div>
@@ -28,7 +28,7 @@ function ProfileCard({ profile }) {
       </div>
 
       {/* XP bar */}
-      <div className="mb-5">
+      <div className="mb-6">
         <div className="flex justify-between text-xs mb-1.5">
           <span className="text-[#4edea3] font-bold">{profile.xp} XP</span>
           <span className="text-white/25">{xpForNext} to Lv.{profile.level + 1}</span>
@@ -46,10 +46,10 @@ function ProfileCard({ profile }) {
           { value: profile.achievements?.length || 0, label: 'Badges', icon: '🏅' },
           { value: profile.total_reports, label: 'Reports', icon: '📸' },
         ].map((s, i) => (
-          <div key={i} className="text-center bg-white/[0.04] rounded-xl py-3">
-            <span className="text-base">{s.icon}</span>
+          <div key={i} className="text-center bg-white/[0.04] rounded-xl py-4 border border-white/[0.06]">
+            <span className="text-lg">{s.icon}</span>
             <div className="text-xl font-bold text-white mt-1">{s.value}</div>
-            <div className="text-[9px] text-white/30 mt-0.5">{s.label}</div>
+            <div className="text-[10px] text-white/30 mt-0.5">{s.label}</div>
           </div>
         ))}
       </div>
@@ -59,21 +59,21 @@ function ProfileCard({ profile }) {
 
 function AllAchievements({ earned, allAchievements }) {
   return (
-    <div className="space-y-3 mt-4">
+    <div className="space-y-4 mt-8">
       <h3 className="text-sm font-bold text-white flex items-center gap-2">
         <Award className="w-4 h-4 text-[#ffa94d]" /> Achievements
       </h3>
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-3">
         {allAchievements.map((a, i) => {
           const isEarned = earned?.includes(a.id);
           return (
-            <motion.div key={a.id} className={`p-3.5 rounded-xl text-center border transition-all ${
-              isEarned ? 'bg-[#ffa94d]/[0.06] border-[#ffa94d]/15' : 'bg-white/[0.015] border-white/[0.03] opacity-40'
+            <motion.div key={a.id} className={`p-4 rounded-xl text-center border transition-all ${
+              isEarned ? 'bg-[#ffa94d]/[0.06] border-[#ffa94d]/20 shadow-lg shadow-black/30' : 'bg-white/[0.015] border-white/[0.04] opacity-40'
             }`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: isEarned ? 1 : 0.4, scale: 1 }} transition={{ delay: i * 0.03 }}>
-              <p className="text-2xl mb-1">{a.name.split(' ')[0]}</p>
+              <p className="text-2xl mb-1.5">{a.name.split(' ')[0]}</p>
               <p className="text-[11px] font-bold text-white">{a.name.split(' ').slice(1).join(' ')}</p>
               <p className="text-[9px] text-white/30 mt-1 leading-relaxed">{a.desc}</p>
-              {isEarned && <p className="text-[9px] text-[#4edea3] mt-1.5 font-bold">✓ Earned</p>}
+              {isEarned && <p className="text-[9px] text-[#4edea3] mt-2 font-bold">✓ Earned</p>}
             </motion.div>
           );
         })}
