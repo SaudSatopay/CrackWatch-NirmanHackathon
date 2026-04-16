@@ -5,6 +5,15 @@
 
 ---
 
+## v2.0.1 — Fix route coloring: safest=green, dangerous=red
+- Routes now color-coded by safety score:
+  - Green (thick, solid) = SAFEST route
+  - Cyan (dashed) = moderate safety
+  - Red (dashed) = dangerous route (near potholes)
+- Default OSRM route lines hidden (gray) — custom polylines drawn after analysis
+- Polylines properly cleaned up on re-route
+- Route names: Route A, Route B, Route C
+
 ## v2.0.0 — STABLE CHECKPOINT + Smart Navigation Engine
 **ISOLATED BRANCH: v2-stable — `git checkout v2-stable` to revert**
 

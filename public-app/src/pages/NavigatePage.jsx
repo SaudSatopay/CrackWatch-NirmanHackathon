@@ -33,8 +33,15 @@ function RoutingControl({ from, to, potholes, avoidPotholes, onRoutesFound }) {
       routeWhileDragging: false,
       addWaypoints: false,
       showAlternatives: true,
-      lineOptions: { styles: [{ color: '#4edea3', weight: 5, opacity: 0.8 }] },
-      altLineOptions: { styles: [{ color: '#5de6ff', weight: 4, opacity: 0.4, dashArray: '8 8' }] },
+      router: L.Routing.osrmv1({
+        serviceUrl: 'https://router.project-osrm.org/route/v1',
+        profile: 'driving',
+        useHints: false,
+        // Request max alternatives
+      }),
+      // Color ALL routes gray initially — we recolor after analysis
+      lineOptions: { styles: [{ color: '#ffffff', weight: 4, opacity: 0.15 }] },
+      altLineOptions: { styles: [{ color: '#ffffff', weight: 3, opacity: 0.1, dashArray: '6 6' }] },
       createMarker: () => null,
       show: false,
       fitSelectedRoutes: true,
@@ -61,7 +68,7 @@ function RoutingControl({ from, to, potholes, avoidPotholes, onRoutesFound }) {
         const safetyScore = Math.max(0, 100 - (hazards.length * 15) - (totalSeverity / 10));
         return {
           index: idx,
-          name: idx === 0 ? 'Primary Route' : `Alternative ${idx}`,
+          name: idx === 0 ? 'Route A' : idx === 1 ? 'Route B' : `Route ${String.fromCharCode(65 + idx)}`,
           distance: (route.summary.totalDistance / 1000).toFixed(1),
           time: Math.round(route.summary.totalTime / 60),
           hazards,
@@ -69,21 +76,45 @@ function RoutingControl({ from, to, potholes, avoidPotholes, onRoutesFound }) {
           totalSeverity,
           safetyScore: Math.round(safetyScore),
           isSafest: false,
+          coordinates: coords,
         };
       });
 
-      // Mark safest route
+      // Mark safest
       if (analyzed.length > 0) {
         const safest = analyzed.reduce((a, b) => a.safetyScore > b.safetyScore ? a : b);
         safest.isSafest = true;
       }
+
+      // Draw colored routes on map — safest = green, dangerous = red/orange
+      analyzed.forEach(route => {
+        const color = route.isSafest ? '#4edea3' : route.safetyScore >= 50 ? '#5de6ff' : '#ff6b6b';
+        const weight = route.isSafest ? 6 : 4;
+        const opacity = route.isSafest ? 0.9 : 0.4;
+        const latlngs = route.coordinates.map(c => [c.lat, c.lng]);
+        const polyline = L.polyline(latlngs, {
+          color, weight, opacity,
+          dashArray: route.isSafest ? null : '8 8',
+        }).addTo(map);
+        // Store for cleanup
+        if (!routeRef.current._polylines) routeRef.current._polylines = [];
+        routeRef.current._polylines.push(polyline);
+      });
 
       onRoutesFound(analyzed);
     });
 
     control.addTo(map);
     routeRef.current = control;
-    return () => { if (routeRef.current) { try { map.removeControl(routeRef.current); } catch {} } };
+    routeRef.current._polylines = [];
+    return () => {
+      if (routeRef.current) {
+        if (routeRef.current._polylines) {
+          routeRef.current._polylines.forEach(p => map.removeLayer(p));
+        }
+        try { map.removeControl(routeRef.current); } catch {}
+      }
+    };
   }, [from, to, avoidPotholes]);
 
   return null;
