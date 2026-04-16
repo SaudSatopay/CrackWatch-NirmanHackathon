@@ -5,6 +5,20 @@
 
 ---
 
+## v2.0.0 — STABLE CHECKPOINT + Smart Navigation Engine
+**ISOLATED BRANCH: v2-stable — `git checkout v2-stable` to revert**
+
+Smart navigation with pothole avoidance:
+- Pick start/end by typing OR tapping map (📍 buttons)
+- Engine finds multiple routes and scores each for safety
+- Safety score = 100 - (hazards * 15) - (totalSeverity / 10)
+- Route comparison panel: distance, time, hazard count, safety %
+- "SAFEST" badge on best route
+- Hazard tags show exact potholes along each route
+- "Avoid hazards" toggle
+- Green line = primary route, cyan dashed = alternatives
+- Red circles = unfixed potholes, orange = moderate
+
 ## v1.6.2 — Tap-to-report on government map too
 - Same quick report feature now on govt Reports Map
 - Click anywhere → sector → photo → submit
