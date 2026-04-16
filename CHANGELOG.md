@@ -5,6 +5,13 @@
 
 ---
 
+## v2.0.2 — Show fraud detection results to user
+- REJECTED reports: red X icon, trust score, "Why it was rejected" with flag details
+- UNDER REVIEW reports: orange warning, trust score, flagged issues, "inspector will review in 24hrs"
+- APPROVED reports: now shows "Authenticity Score: XX% ✓"
+- Three distinct screens based on backend verdict (auto_approve / flag_for_review / block)
+- Backend HTTPS enabled for mixed-content fix on phones
+
 ## v2.0.1 — Fix route coloring: safest=green, dangerous=red
 - Routes now color-coded by safety score:
   - Green (thick, solid) = SAFEST route

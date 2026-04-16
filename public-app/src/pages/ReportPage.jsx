@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, MapPin, Send, CheckCircle, Loader2, ImagePlus, X } from 'lucide-react';
+import { Camera, MapPin, Send, CheckCircle, Loader2, ImagePlus, X, AlertTriangle } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -63,7 +63,97 @@ export default function ReportPage() {
 
   const reset = () => { setImage(null); setImageFile(null); setDescription(''); setLocation(null); setResult(null); };
 
-  // Success screen with full report preview
+  // REJECTED — fake report detected
+  if (result && result.status === 'rejected') {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="px-5 pt-8 pb-8 space-y-5">
+          <motion.div className="text-center" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+            <div className="w-20 h-20 rounded-full bg-[#ff6b6b]/10 flex items-center justify-center mx-auto mb-4">
+              <X className="w-10 h-10 text-[#ff6b6b]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#ff6b6b]" style={{ fontFamily: 'Space Grotesk' }}>Report Rejected</h2>
+            <p className="text-sm text-white/40 mt-2">{result.message}</p>
+          </motion.div>
+
+          {/* Trust score */}
+          <motion.div className="bg-[#ff6b6b]/[0.05] rounded-xl p-4 border border-[#ff6b6b]/10 text-center"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold mb-1">Trust Score</p>
+            <p className="text-3xl font-bold text-[#ff6b6b]" style={{ fontFamily: 'Space Grotesk' }}>{result.trust_score}%</p>
+            <p className="text-[11px] text-white/30 mt-1">Minimum required: 45%</p>
+          </motion.div>
+
+          {/* Flags */}
+          {result.flags?.length > 0 && (
+            <motion.div className="space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
+              <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold">Why it was rejected</p>
+              {result.flags.map((flag, i) => (
+                <div key={i} className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03]">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold mt-0.5 ${
+                    flag.severity === 'high' || flag.severity === 'critical' ? 'bg-[#ff6b6b]/10 text-[#ff6b6b]' :
+                    flag.severity === 'medium' ? 'bg-[#ffa94d]/10 text-[#ffa94d]' : 'bg-white/5 text-white/40'
+                  }`}>{flag.severity}</span>
+                  <p className="text-xs text-white/60 flex-1">{flag.detail}</p>
+                </div>
+              ))}
+            </motion.div>
+          )}
+
+          <motion.button onClick={reset}
+            className="w-full py-3.5 rounded-xl bg-white/[0.06] text-white/60 font-bold text-sm"
+            whileTap={{ scale: 0.97 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
+            Try Again
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
+
+  // UNDER REVIEW — suspicious report
+  if (result && result.status === 'under_review') {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="px-5 pt-8 pb-8 space-y-5">
+          <motion.div className="text-center" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+            <div className="w-20 h-20 rounded-full bg-[#ffa94d]/10 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-10 h-10 text-[#ffa94d]" />
+            </div>
+            <h2 className="text-xl font-bold text-[#ffa94d]" style={{ fontFamily: 'Space Grotesk' }}>Under Review</h2>
+            <p className="text-sm text-white/40 mt-2">Your report was submitted but flagged for manual verification.</p>
+            <p className="text-xs text-white/30 mt-1">ID: <span className="text-[#74c0fc] font-mono">{result.id}</span></p>
+          </motion.div>
+
+          <div className="bg-[#ffa94d]/[0.05] rounded-xl p-4 border border-[#ffa94d]/10 text-center">
+            <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold mb-1">Trust Score</p>
+            <p className="text-2xl font-bold text-[#ffa94d]">{result.trust_score}%</p>
+          </div>
+
+          {result.flags?.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold">Flagged issues</p>
+              {result.flags.map((flag, i) => (
+                <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg bg-white/[0.03]">
+                  <span className="text-[10px] text-[#ffa94d]">⚠</span>
+                  <p className="text-xs text-white/50">{flag.detail}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-white/20 text-center">A government inspector will review this report within 24 hours.</p>
+
+          <motion.button onClick={reset}
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] font-bold text-sm"
+            whileTap={{ scale: 0.97 }}>
+            Report Another
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
+
+  // SUCCESS — approved report
   if (result && !result.error) {
     return (
       <div className="h-full overflow-y-auto">
@@ -120,7 +210,14 @@ export default function ReportPage() {
             </motion.div>
           )}
 
-          {/* Status */}
+          {/* Trust + Status */}
+          {result.trust_score && (
+            <motion.div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/[0.03]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.38 }}>
+              <span className="text-[10px] text-white/30 uppercase tracking-wider font-bold">Authenticity Score</span>
+              <span className="text-sm font-bold text-[#4edea3]">{result.trust_score}% ✓</span>
+            </motion.div>
+          )}
           <motion.div className="bg-[#4edea3]/[0.05] rounded-xl p-3 border border-[#4edea3]/10 text-center"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
             <p className="text-xs text-[#4edea3] font-semibold">✓ Authorities have been notified</p>
