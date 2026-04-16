@@ -19,6 +19,7 @@ from cost_engine import estimate_cost, rank_priorities, generate_repair_plan, ex
 from auth import login, register_citizen, verify_token
 from fraud_detection import run_full_fraud_check
 from analytics_engine import generate_wall_of_shame, generate_heatmap_data, generate_priority_queue, generate_city_health_scores
+from predictive_engine import predict_all_detections, generate_area_forecast
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -230,6 +231,7 @@ async def detect_damage(
         "inference_time_ms": inference_time,
         "location": record["location"],
         "authenticity": authenticity,
+        "predictions": predict_all_detections(ranked_detections),
     })
 
 
@@ -554,6 +556,13 @@ async def city_health():
     all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
     scores = generate_city_health_scores(all_reports)
     return {"cities": scores, "total_cities": len(scores)}
+
+
+@app.get("/analytics/forecast")
+async def area_forecast():
+    """Predictive maintenance — which zones will fail next."""
+    all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
+    return generate_area_forecast(all_reports)
 
 
 @app.post("/analytics/before-after")

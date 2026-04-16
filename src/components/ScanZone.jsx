@@ -243,6 +243,8 @@ export default function ScanZone() {
         category: det.category,
         risk: det.risk,
         repair: det.repair,
+        // Prediction (if available)
+        prediction: data.predictions?.[i] || null,
       }));
 
       // Set annotated image from API
@@ -661,6 +663,25 @@ export default function ScanZone() {
                           <p className="text-emerald-400/70 italic">{result.explanation.recommendation}</p>
                         </div>
                       </details>
+                    )}
+
+                    {/* Prediction */}
+                    {result.prediction && (
+                      <div className="mt-2 p-2 rounded-md bg-violet-500/[0.05] border border-violet-500/10">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[9px] text-violet-400 font-bold uppercase tracking-wider">🔮 Prediction</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                            result.prediction.urgency === 'IMMEDIATE' ? 'bg-red-500/10 text-red-400' :
+                            result.prediction.urgency === 'HIGH' ? 'bg-amber-500/10 text-amber-400' :
+                            'bg-zinc-800 text-zinc-400'
+                          }`}>{result.prediction.urgency}</span>
+                        </div>
+                        <p className="text-[10px] text-zinc-400">{result.prediction.risk_description}</p>
+                        <div className="flex gap-3 mt-1.5 text-[9px]">
+                          <span className="text-red-400/70">Pothole in: {result.prediction.prediction?.pothole_eta}</span>
+                          <span className="text-amber-400/70">+{result.prediction.prediction?.worsen_per_week}%/week</span>
+                        </div>
+                      </div>
                     )}
 
                     {/* Confidence bar */}

@@ -5,6 +5,30 @@
 
 ---
 
+## v2.2.0 — Predictive Maintenance Engine
+"This road will fail in X days"
+
+Backend (predictive_engine.py):
+- Damage progression rates per type (growth mm/day, worsen %/week)
+- Monsoon acceleration (2.5x faster Jun-Sep for India)
+- Timeline: predicted severity at 1/2/4/8/12 weeks
+- Cost projection: cost now vs delayed 1wk/2wk/1mo/3mo
+- Area-wide forecast: which zones will fail next
+- Urgency levels: IMMEDIATE/HIGH/MODERATE/LOW
+
+API:
+- GET /analytics/forecast — zone risk predictions
+- /detect now returns predictions[] with each detection
+
+Frontend:
+- New "Predictions" tab in Analytics with area forecast cards
+- Risk scores + "Critical failure expected in X days" warnings
+- URGENT badge for zones < 30 days to failure
+- Each scan detection now shows prediction inline:
+  - "Pothole in: X days"
+  - "+X%/week severity increase"
+  - Urgency badge + risk description
+
 ## v2.1.0 — Advanced Analytics: Wall of Shame + Priority Engine + City Health + Before/After
 5 major analytics features:
 

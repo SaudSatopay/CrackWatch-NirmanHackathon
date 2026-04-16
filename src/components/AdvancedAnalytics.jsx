@@ -125,11 +125,57 @@ function CityHealth({ data }) {
   );
 }
 
+function AreaForecast({ data }) {
+  if (!data?.zones?.length) return <p className="text-sm text-zinc-500 text-center py-8">No prediction data yet.</p>;
+
+  return (
+    <div className="space-y-3">
+      {data.zones.map((zone, i) => (
+        <motion.div key={zone.zone} className={`p-4 rounded-xl border ${
+          zone.risk_score >= 70 ? 'bg-red-500/[0.04] border-red-500/15' :
+          zone.risk_score >= 40 ? 'bg-amber-500/[0.04] border-amber-500/15' :
+          'bg-white/[0.02] border-white/[0.04]'
+        }`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h4 className="text-sm font-bold text-white">{zone.zone}</h4>
+              <p className="text-[10px] text-zinc-500">{zone.active_issues} active issue{zone.active_issues !== 1 ? 's' : ''}</p>
+            </div>
+            <div className="text-right">
+              <div className={`text-2xl font-bold ${
+                zone.risk_score >= 70 ? 'text-red-400' : zone.risk_score >= 40 ? 'text-amber-400' : 'text-emerald-400'
+              }`} style={{ fontFamily: 'Space Grotesk' }}>{zone.risk_score}</div>
+              <p className="text-[9px] text-zinc-500">risk score</p>
+            </div>
+          </div>
+          {/* Prediction bar */}
+          <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden mb-2">
+            <motion.div className="h-full rounded-full" initial={{ width: 0 }}
+              animate={{ width: `${zone.risk_score}%` }} transition={{ duration: 0.8, delay: i * 0.1 }}
+              style={{ background: zone.risk_score >= 70 ? '#ff6b6b' : zone.risk_score >= 40 ? '#ffa94d' : '#4edea3' }} />
+          </div>
+          <div className="flex items-center justify-between">
+            <p className={`text-xs font-medium ${
+              zone.earliest_failure_days < 14 ? 'text-red-400' : zone.earliest_failure_days < 60 ? 'text-amber-400' : 'text-zinc-400'
+            }`}>
+              {zone.earliest_failure_days < 14 ? '⚠️' : zone.earliest_failure_days < 60 ? '⏳' : '📊'} {zone.forecast}
+            </p>
+            {zone.earliest_failure_days < 30 && (
+              <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400 text-[9px] font-bold">URGENT</span>
+            )}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdvancedAnalytics() {
   const [tab, setTab] = useState('shame');
   const [shame, setShame] = useState(null);
   const [priority, setPriority] = useState(null);
   const [health, setHealth] = useState(null);
+  const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -137,14 +183,16 @@ export default function AdvancedAnalytics() {
       fetch(`${API_URL}/analytics/wall-of-shame`).then(r => r.json()).catch(() => null),
       fetch(`${API_URL}/analytics/priority-queue`).then(r => r.json()).catch(() => null),
       fetch(`${API_URL}/analytics/city-health`).then(r => r.json()).catch(() => null),
-    ]).then(([s, p, h]) => {
-      setShame(s); setPriority(p); setHealth(h); setLoading(false);
+      fetch(`${API_URL}/analytics/forecast`).then(r => r.json()).catch(() => null),
+    ]).then(([s, p, h, f]) => {
+      setShame(s); setPriority(p); setHealth(h); setForecast(f); setLoading(false);
     });
   }, []);
 
   const tabs = [
     { id: 'shame', label: 'Wall of Shame', icon: Flame },
     { id: 'priority', label: 'Fix Priority', icon: AlertTriangle },
+    { id: 'predict', label: 'Predictions', icon: TrendingUp },
     { id: 'health', label: 'City Health', icon: Shield },
   ];
 
@@ -186,6 +234,15 @@ export default function AdvancedAnalytics() {
               <p className="text-xs text-zinc-500 mb-1">Priority = Severity × Days Unresolved × Community Votes</p>
               <p className="text-[10px] text-zinc-600 mb-4">Top 5 most urgent repairs</p>
               <PriorityQueue data={priority?.priorities} />
+            </div>
+          )}
+          {tab === 'predict' && (
+            <div>
+              <h3 className="text-lg font-extrabold text-white mb-1 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-violet-400" /> Predictive Maintenance
+              </h3>
+              <p className="text-xs text-zinc-500 mb-4">AI forecasts which zones will fail next based on damage progression rates</p>
+              <AreaForecast data={forecast} />
             </div>
           )}
           {tab === 'health' && (
