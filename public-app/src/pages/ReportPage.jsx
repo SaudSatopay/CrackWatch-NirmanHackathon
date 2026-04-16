@@ -43,40 +43,91 @@ export default function ReportPage() {
     fd.append('location_name', 'Reported via App');
     try {
       const res = await fetch(`${API_URL}/public/report`, { method: 'POST', body: fd });
-      setResult(await res.json());
+      const data = await res.json();
+      // Fetch full report with annotated image for preview
+      if (data.id) {
+        try {
+          const detail = await fetch(`${API_URL}/public/reports/${data.id}`);
+          const fullReport = await detail.json();
+          data.annotated_image = fullReport.annotated_image;
+          data.detections = fullReport.detections;
+          data.stats = fullReport.stats;
+        } catch {}
+      }
+      setResult(data);
     } catch { setResult({ error: true, message: 'Server not reachable' }); }
     finally { setSubmitting(false); }
   };
 
   const reset = () => { setImage(null); setImageFile(null); setDescription(''); setLocation(null); setResult(null); };
 
-  // Success screen
+  // Success screen with full report preview
   if (result && !result.error) {
     return (
-      <div className="h-full flex flex-col items-center justify-center px-8 text-center">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 15 }}>
-          <div className="w-24 h-24 rounded-full bg-[#69db7c]/10 flex items-center justify-center mx-auto mb-5">
-            <CheckCircle className="w-12 h-12 text-[#69db7c]" />
-          </div>
-        </motion.div>
-        <motion.h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Space Grotesk' }}
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          Report Submitted!
-        </motion.h2>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="space-y-2 mb-6">
-          <p className="text-sm text-white/50">Report ID: <span className="text-[#74c0fc] font-mono font-bold">{result.id}</span></p>
-          <p className="text-sm text-white/50">{result.detections_count} defect{result.detections_count !== 1 ? 's' : ''} detected by AI</p>
-          <div className="flex justify-center gap-3 mt-3">
-            {result.severity_summary?.critical > 0 && <span className="px-2 py-1 rounded-full bg-[#ff6b6b]/10 text-[#ff6b6b] text-[11px] font-bold">{result.severity_summary.critical} Critical</span>}
-            {result.severity_summary?.warning > 0 && <span className="px-2 py-1 rounded-full bg-[#ffa94d]/10 text-[#ffa94d] text-[11px] font-bold">{result.severity_summary.warning} Warning</span>}
-            {result.severity_summary?.minor > 0 && <span className="px-2 py-1 rounded-full bg-white/5 text-white/50 text-[11px] font-bold">{result.severity_summary.minor} Minor</span>}
-          </div>
-        </motion.div>
-        <motion.p className="text-[12px] text-[#4edea3]/60 mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-          Authorities have been notified. Track on the Map tab.
-        </motion.p>
-        <motion.button onClick={reset} className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] font-bold text-sm"
-          whileTap={{ scale: 0.97 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+      <div className="h-full overflow-y-auto">
+        <div className="px-5 pt-5 pb-8 space-y-4">
+          {/* Success header */}
+          <motion.div className="text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="w-16 h-16 rounded-full bg-[#69db7c]/10 flex items-center justify-center mx-auto mb-3">
+              <CheckCircle className="w-8 h-8 text-[#69db7c]" />
+            </div>
+            <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Space Grotesk' }}>Report Submitted!</h2>
+            <p className="text-xs text-white/40 mt-1">ID: <span className="text-[#74c0fc] font-mono">{result.id}</span></p>
+          </motion.div>
+
+          {/* Annotated image preview */}
+          {result.annotated_image && (
+            <motion.div className="rounded-xl overflow-hidden" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <img src={`data:image/jpeg;base64,${result.annotated_image}`} alt="AI Detection" className="w-full h-48 object-cover" />
+            </motion.div>
+          )}
+
+          {/* Detection results */}
+          <motion.div className="space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
+            <p className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold">AI Detection Results</p>
+            {result.detections?.map((det, i) => (
+              <div key={i} className="bg-white/[0.03] rounded-xl p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white">{det.display_name || det.class_name}</p>
+                  <p className="text-[10px] text-white/30">Confidence: {(det.confidence * 100).toFixed(0)}%</p>
+                </div>
+                <div className="text-right">
+                  <span className={`text-xs font-bold ${det.severity_label === 'critical' ? 'text-[#ff6b6b]' : det.severity_label === 'warning' ? 'text-[#ffa94d]' : 'text-[#69db7c]'}`}>
+                    {det.severity?.toFixed(0)}%
+                  </span>
+                  <p className="text-[9px] text-white/20">severity</p>
+                </div>
+              </div>
+            )) || (
+              <div className="flex justify-center gap-3">
+                {result.severity_summary?.critical > 0 && <span className="px-2 py-1 rounded-full bg-[#ff6b6b]/10 text-[#ff6b6b] text-[11px] font-bold">{result.severity_summary.critical} Critical</span>}
+                {result.severity_summary?.warning > 0 && <span className="px-2 py-1 rounded-full bg-[#ffa94d]/10 text-[#ffa94d] text-[11px] font-bold">{result.severity_summary.warning} Warning</span>}
+                {result.severity_summary?.minor > 0 && <span className="px-2 py-1 rounded-full bg-white/5 text-white/50 text-[11px] font-bold">{result.severity_summary.minor} Minor</span>}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Cost estimate if available */}
+          {result.detections?.[0]?.cost && (
+            <motion.div className="bg-[#ffa94d]/[0.05] rounded-xl p-3 border border-[#ffa94d]/10"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
+              <p className="text-[10px] text-white/30 uppercase tracking-wider font-bold mb-1">Estimated Repair Cost</p>
+              <p className="text-xl font-bold text-[#ffa94d]" style={{ fontFamily: 'Space Grotesk' }}>
+                ₹{result.detections.reduce((s, d) => s + (d.cost?.cost_estimated || 0), 0).toLocaleString('en-IN')}
+              </p>
+            </motion.div>
+          )}
+
+          {/* Status */}
+          <motion.div className="bg-[#4edea3]/[0.05] rounded-xl p-3 border border-[#4edea3]/10 text-center"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+            <p className="text-xs text-[#4edea3] font-semibold">✓ Authorities have been notified</p>
+            <p className="text-[10px] text-white/30 mt-0.5">Track status on the Map tab</p>
+          </motion.div>
+
+          {/* Report another */}
+          <motion.button onClick={reset} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] font-bold text-sm"
+            whileTap={{ scale: 0.97 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
           Report Another
         </motion.button>
       </div>

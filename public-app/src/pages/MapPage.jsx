@@ -59,13 +59,19 @@ export default function MapPage() {
     fixed: reports.filter(r => r.status === 'fixed').length,
   };
 
+  // Load upvotes from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('crackwatch_upvotes');
+    if (saved) setUpvoted(new Set(JSON.parse(saved)));
+  }, []);
+
   const handleUpvote = async (report) => {
     if (upvoted.has(report.id)) return;
-    // Optimistic update
     setReports(prev => prev.map(r => r.id === report.id ? { ...r, upvotes: r.upvotes + 1 } : r));
     setSelected(prev => prev?.id === report.id ? { ...prev, upvotes: prev.upvotes + 1 } : prev);
-    setUpvoted(prev => new Set([...prev, report.id]));
-    // API call
+    const newUpvoted = new Set([...upvoted, report.id]);
+    setUpvoted(newUpvoted);
+    localStorage.setItem('crackwatch_upvotes', JSON.stringify([...newUpvoted]));
     try { await fetch(`${API_URL}/public/reports/${report.id}/upvote`, { method: 'POST' }); } catch {}
   };
 

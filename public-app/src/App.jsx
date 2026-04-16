@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User } from 'lucide-react';
+import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User, LogOut } from 'lucide-react';
 import MapPage from './pages/MapPage';
 import ReportPage from './pages/ReportPage';
 import StatsPage from './pages/StatsPage';
@@ -11,6 +11,7 @@ const tabs = [
   { id: 'map', label: 'Map', icon: MapPin },
   { id: 'report', label: 'Report', icon: Camera },
   { id: 'stats', label: 'Dashboard', icon: BarChart3 },
+  { id: 'logout', label: 'Logout', icon: LogOut },
 ];
 
 function CitizenLogin({ onLogin }) {
@@ -95,6 +96,12 @@ export default function App() {
   });
   const [activeTab, setActiveTab] = useState('map');
 
+  const handleLogout = () => {
+    localStorage.removeItem('crackwatch_citizen');
+    localStorage.removeItem('crackwatch_upvotes');
+    setUser(null);
+  };
+
   if (!user) {
     return <CitizenLogin onLogin={setUser} />;
   }
@@ -128,8 +135,8 @@ export default function App() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 relative transition-colors"
+                onClick={() => tab.id === 'logout' ? handleLogout() : setActiveTab(tab.id)}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 relative transition-colors ${tab.id === 'logout' ? 'opacity-60' : ''}`}
               >
                 {isActive && (
                   <motion.div layoutId="tab-bg" className="absolute inset-x-3 inset-y-1 rounded-xl bg-[#4edea3]/[0.08]"
