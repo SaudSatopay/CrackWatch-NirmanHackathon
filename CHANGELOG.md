@@ -5,6 +5,19 @@
 
 ---
 
+## v3.6.0 — Presentation rebuilt: 15-slide deck with all groundbreaking features
+- Completely rewrote presentation/generate.cjs with Sovereign Intelligence dark theme
+- Expanded from 12 slides to 15, adding the missing groundbreaking features
+- NEW slide 5: WhatsApp Bot — showstopper with conversation mockup, "500M users" stat
+- NEW slide 8: 5-Layer Fraud Detection — image authenticity, GPS, relevance, duplicates, rate limiting
+- NEW slide 9: Predictive Maintenance — "fails in 18 days" card + monsoon acceleration factor
+- NEW slide 10: Gamification — Pothole Hunter podium visual + 6 feature cards
+- NEW slide 11: Wall of Shame + Accountability Loop — contractor negligence ranking
+- Upgraded visual design: cards with borders, gradient callouts, colored tag system
+- Switched layout from 10x7.5 to widescreen 13.33x7.5
+- Color palette: emerald primary, cyan/violet/amber/gold accents, dark cards on black
+- Fixed hex+alpha color warnings (now uses transparency property)
+
 ## v3.5.2 — Stateful WhatsApp bot: two-step photo + location flow
 - Problem: WhatsApp strips EXIF GPS from photos for privacy, so all WhatsApp reports defaulted to Mumbai center coords
 - Fix: turned webhook into a two-step conversation
