@@ -5,6 +5,13 @@
 
 ---
 
+## v3.3.1 — Settings page cleanup: remove non-functional items
+- Removed entire "General" section (Dark Mode, Language, Notifications, Default Region — all were click-only placeholders with no behavior)
+- Removed fake "API Status: Healthy" row (was hardcoded, not a real health check)
+- Kept working items: Profile card, Fraud Detection toggle, AI Model display, Sign Out
+- Version label updated v2.0 → v3.3.0
+- Cleaned up unused imports (Shield, Bell, MapPin, ChevronRight, Moon, Globe)
+
 ## v3.3.0 — Password-protected citizen demo account + auto-seed on startup
 - New demo account: username `saud`, password `123` → logs in as "Saud Vinchu" (citizen role)
 - Profile pre-loaded: 3200 XP, Lv.6, 180 coins, 45 reports, 21-day streak, 10 badges

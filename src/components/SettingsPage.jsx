@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Shield, Bell, MapPin, LogOut, ChevronRight, Moon, Globe, HardDrive, ShieldCheck, ShieldOff } from "lucide-react";
+import { User, LogOut, HardDrive, ShieldCheck, ShieldOff } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -94,41 +94,16 @@ export default function SettingsPage({ user, onLogout }) {
         </div>
       </div>
 
-      {/* General settings */}
-      <div className="bg-white/[0.03] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
-        <p className="px-5 py-3 text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold">General</p>
-        {[
-          { icon: Moon, label: "Dark Mode", value: "Always On" },
-          { icon: Globe, label: "Language", value: "English" },
-          { icon: Bell, label: "Notifications", value: "Enabled" },
-          { icon: MapPin, label: "Default Region", value: "Mumbai, Maharashtra" },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.02] transition-colors cursor-pointer">
-            <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
-              <item.icon className="w-4 h-4 text-white/40" />
-            </div>
-            <span className="flex-1 text-sm text-white/70 font-medium">{item.label}</span>
-            <span className="text-xs text-white/30">{item.value}</span>
-            <ChevronRight className="w-4 h-4 text-white/15" />
-          </div>
-        ))}
-      </div>
-
       {/* System */}
-      <div className="bg-white/[0.03] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
+      <div className="bg-white/[0.03] rounded-2xl overflow-hidden">
         <p className="px-5 py-3 text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold">System</p>
-        {[
-          { icon: HardDrive, label: "AI Model", value: "YOLOv8s-RDD + CrackSeg (Local)" },
-          { icon: Shield, label: "API Status", value: "Healthy", color: "text-emerald-400" },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 px-5 py-3.5">
-            <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
-              <item.icon className="w-4 h-4 text-white/40" />
-            </div>
-            <span className="flex-1 text-sm text-white/70 font-medium">{item.label}</span>
-            <span className={`text-xs ${item.color || 'text-white/30'}`}>{item.value}</span>
+        <div className="flex items-center gap-3 px-5 py-3.5">
+          <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
+            <HardDrive className="w-4 h-4 text-white/40" />
           </div>
-        ))}
+          <span className="flex-1 text-sm text-white/70 font-medium">AI Model</span>
+          <span className="text-xs text-white/30">YOLOv8s-RDD + CrackSeg (Local)</span>
+        </div>
       </div>
 
       {/* Logout */}
@@ -141,7 +116,7 @@ export default function SettingsPage({ user, onLogout }) {
         Sign Out
       </motion.button>
 
-      <p className="text-center text-[10px] text-white/10">CRACKWATCH v2.0 — NIRMAN Hackathon 2026</p>
+      <p className="text-center text-[10px] text-white/10">CRACKWATCH v3.3.0 — NIRMAN Hackathon 2026</p>
     </motion.div>
   );
 }
