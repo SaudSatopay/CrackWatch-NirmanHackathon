@@ -55,9 +55,15 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 @app.on_event("startup")
 async def startup():
-    """Pre-load model on startup so first request is fast."""
+    """Pre-load model on startup so first request is fast. Auto-seed demo data for presentation."""
     print("[CRACKWATCH] Starting up...")
     get_detector()
+    try:
+        await seed_demo_gamification()
+        await seed_demo_reports()
+        print("[CRACKWATCH] Demo data auto-seeded (gamification + reports).")
+    except Exception as e:
+        print(f"[CRACKWATCH] Auto-seed skipped: {e}")
     print("[CRACKWATCH] Ready.")
 
 
@@ -854,14 +860,14 @@ async def seed_demo_gamification():
 async def seed_demo_reports():
     """Seed demo citizen reports for presentation — same data visible on govt + public apps."""
     demo = [
-        ("RPT-001", 19.0330, 73.0297, "Ghodbunder Road, Thane",        "Pothole",           82, "submitted",    23, 3, "Rahul M.",  "Massive pothole near bus stop, bikes at risk",                      "2026-04-13T09:42:00Z", 4500, "Hot mix asphalt patching"),
-        ("RPT-002", 19.0176, 73.0596, "Panvel Station Road",           "Alligator Crack",   65, "in_progress", 12, 2, "Priya S.",  "Road surface breaking apart near railway crossing",                 "2026-04-12T14:07:00Z", 3200, "Mill and overlay"),
-        ("RPT-003", 19.0450, 73.0200, "Mumbai-Pune Expressway KM 42",  "Pothole",           91, "submitted",   47, 5, "Amit K.",   "Multiple deep potholes, caused 2 accidents last week",              "2026-04-11T08:23:00Z", 8500, "Deep patching + sealant"),
-        ("RPT-004", 19.0280, 73.0450, "Amity University Road",         "Transverse Crack",  28, "fixed",        5, 1, "Saud V.",   "Minor crack near university gate",                                  "2026-04-10T17:50:00Z",  800, "Crack sealing"),
-        ("RPT-005", 19.0550, 73.0100, "Kalamboli Flyover",             "Pothole",           73, "acknowledged",18, 2, "Neha D.",   "Pothole on flyover causing traffic slowdown",                       "2026-04-09T11:30:00Z", 5200, "Hot mix patching"),
-        ("RPT-006", 19.0100, 73.0700, "Old Panvel Bridge",             "Alligator Crack",   87, "submitted",   34, 4, "Vikram T.", "Bridge surface severely cracked, structural concern",               "2026-04-08T06:15:00Z", 9800, "Full-depth reconstruction"),
-        ("RPT-007", 19.0380, 73.0350, "Kharghar Sector 12",            "Surface Spalling",  45, "in_progress",  8, 1, "Anjali R.", "Concrete surface peeling off on main road",                         "2026-04-13T20:00:00Z", 1800, "Resurfacing"),
-        ("RPT-008", 19.0600, 73.0050, "Belapur CBD",                   "Longitudinal Crack",38, "fixed",        3, 1, "Kiran P.",  "Long crack along road, was fixed last week",                        "2026-04-07T15:45:00Z",  950, "Crack sealing"),
+        ("RPT-001", 19.0330, 73.0297, "Ghodbunder Road, Thane",        "Pothole",           82, "submitted",    23, 3, "Rahul M.",      "Massive pothole near bus stop, bikes at risk",                      "2026-04-13T09:42:00Z", 4500, "Hot mix asphalt patching"),
+        ("RPT-002", 19.0176, 73.0596, "Panvel Station Road",           "Alligator Crack",   65, "in_progress", 12, 2, "Priya S.",      "Road surface breaking apart near railway crossing",                 "2026-04-12T14:07:00Z", 3200, "Mill and overlay"),
+        ("RPT-003", 19.0450, 73.0200, "Mumbai-Pune Expressway KM 42",  "Pothole",           91, "submitted",   47, 5, "Saud Vinchu",   "Multiple deep potholes, caused 2 accidents last week",              "2026-04-11T08:23:00Z", 8500, "Deep patching + sealant"),
+        ("RPT-004", 19.0280, 73.0450, "Amity University Road",         "Transverse Crack",  28, "fixed",        5, 1, "Saud Vinchu",   "Minor crack near university gate",                                  "2026-04-10T17:50:00Z",  800, "Crack sealing"),
+        ("RPT-005", 19.0550, 73.0100, "Kalamboli Flyover",             "Pothole",           73, "acknowledged",18, 2, "Neha D.",       "Pothole on flyover causing traffic slowdown",                       "2026-04-09T11:30:00Z", 5200, "Hot mix patching"),
+        ("RPT-006", 19.0100, 73.0700, "Old Panvel Bridge",             "Alligator Crack",   87, "submitted",   34, 4, "Saud Vinchu",   "Bridge surface severely cracked, structural concern",               "2026-04-08T06:15:00Z", 9800, "Full-depth reconstruction"),
+        ("RPT-007", 19.0380, 73.0350, "Kharghar Sector 12",            "Surface Spalling",  45, "in_progress",  8, 1, "Anjali R.",     "Concrete surface peeling off on main road",                         "2026-04-13T20:00:00Z", 1800, "Resurfacing"),
+        ("RPT-008", 19.0600, 73.0050, "Belapur CBD",                   "Longitudinal Crack",38, "fixed",        3, 1, "Kiran P.",      "Long crack along road, was fixed last week",                        "2026-04-07T15:45:00Z",  950, "Crack sealing"),
     ]
 
     existing_ids = {r["id"] for r in citizen_reports}

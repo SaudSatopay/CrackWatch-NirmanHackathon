@@ -20,13 +20,34 @@ const tabs = [
 
 function CitizenLogin({ onLogin }) {
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
     setLoading(true);
+    setError('');
     try {
+      // If password provided, try password-based login (for saud/demo accounts)
+      if (password.trim()) {
+        const fd = new FormData();
+        fd.append('username', name.trim());
+        fd.append('password', password.trim());
+        const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', body: fd });
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem('crackwatch_citizen', JSON.stringify(data));
+          onLogin(data);
+          setLoading(false);
+          return;
+        }
+        setError('Invalid username or password');
+        setLoading(false);
+        return;
+      }
+      // No password → fresh citizen registration
       const fd = new FormData();
       fd.append('name', name.trim());
       const res = await fetch(`${API_URL}/auth/register`, { method: 'POST', body: fd });
@@ -63,7 +84,7 @@ function CitizenLogin({ onLogin }) {
           <p className="text-sm text-white/40 mt-2">Report road damage in your area</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2 block">Your Name</label>
             <input
@@ -75,6 +96,21 @@ function CitizenLogin({ onLogin }) {
               autoFocus
             />
           </div>
+
+          <div>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2 block">Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Leave empty for new account"
+              className="w-full px-5 py-4 rounded-2xl bg-white/[0.05] text-white text-base outline-none placeholder-white/20 focus:ring-2 focus:ring-[#4edea3]/30 border border-white/[0.06]"
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-[#ff6b6b] text-center">{error}</p>
+          )}
 
           <motion.button
             type="submit"

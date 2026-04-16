@@ -5,6 +5,15 @@
 
 ---
 
+## v3.3.0 — Password-protected citizen demo account + auto-seed on startup
+- New demo account: username `saud`, password `123` → logs in as "Saud Vinchu" (citizen role)
+- Profile pre-loaded: 3200 XP, Lv.6, 180 coins, 45 reports, 21-day streak, 10 badges
+- Achievements: first_report, five_reports, ten_reports, twenty_five_reports, streak_3, streak_7, critical_finder, fast_reporter, multi_sector, ai_challenger
+- Seeded reports tied to Saud Vinchu: RPT-003 (Mumbai-Pune Expy, 91% severity), RPT-004 (Amity University Rd, fixed), RPT-006 (Old Panvel Bridge, 87% severity)
+- Public app CitizenLogin: added optional password field (leave empty for fresh account, fill for demo login)
+- Backend startup: auto-seeds gamification + reports demo data — no manual curl needed anymore
+- Presentation flow: just enter "saud" + "123" → full demo-ready profile
+
 ## v3.2.1 — Unified demo data between govt + public apps
 - New backend endpoint: POST /admin/reports/seed-demo — seeds 8 demo citizen reports
 - Removed hardcoded DEMO array from public-app/src/pages/MapPage.jsx

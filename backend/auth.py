@@ -17,6 +17,8 @@ USERS = {
     "admin": {"password": "admin123", "role": "government", "name": "Inspector Kumar", "department": "PWD Mumbai"},
     "inspector": {"password": "inspect123", "role": "government", "name": "Officer Sharma", "department": "Municipal Corp"},
     "engineer": {"password": "eng123", "role": "government", "name": "Er. Patel", "department": "NHAI"},
+    # Demo citizen account — password-protected citizen profile for presentation
+    "saud": {"password": "123", "role": "citizen", "name": "Saud Vinchu", "department": ""},
 }
 
 
