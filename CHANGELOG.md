@@ -5,6 +5,13 @@
 
 ---
 
+## v1.5.4 — Skip empty frames in video detection
+- Video /detect/video only returns frames where damage was found
+- Frames with zero detections are excluded from results
+- Reduces response size and clutter in frame viewer
+
+---
+
 ## v1.5.3 — CHECKPOINT (Apr 16, 2026)
 **STABLE RELEASE — Revert point**
 - Fix: Road sector no longer detects corrosion/spalling false positives
