@@ -330,15 +330,58 @@ export default function GamificationPage({ userName }) {
                 <Target className="w-5 h-5 text-[#5de6ff]" /> Today's Challenges
               </h3>
               <Challenges data={challenges} />
-              {/* Tip card to fill space */}
-              <div className="bg-gradient-to-br from-violet-500/[0.04] to-[#5de6ff]/[0.03] rounded-xl p-5 border border-violet-500/10 mt-4">
-                <p className="text-xs text-violet-400 font-bold mb-2">💡 Pro Tips</p>
-                <ul className="space-y-2 text-xs text-white/40">
-                  <li>• Report potholes in different areas to earn the 🔍 Inspector badge</li>
-                  <li>• Upload 3 reports in 1 hour for ⚡ Fast Reporter achievement</li>
-                  <li>• Maintain a daily streak for bonus XP multipliers</li>
-                  <li>• Verify other reports to earn the ✅ Verifier badge</li>
-                </ul>
+
+              {/* Weekly goal */}
+              <div className="bg-white/[0.03] rounded-xl p-5 border border-white/[0.04]">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-bold text-white">📅 Weekly Goal</p>
+                  <span className="text-xs text-[#4edea3] font-bold">3/20 reports</span>
+                </div>
+                <div className="w-full h-3 rounded-full bg-white/[0.06] overflow-hidden mb-2">
+                  <div className="h-full rounded-full bg-gradient-to-r from-[#4edea3] to-[#5de6ff]" style={{ width: '15%' }} />
+                </div>
+                <p className="text-[10px] text-white/25">Complete 20 reports this week for +500 XP & +100 coins</p>
+              </div>
+
+              {/* Tip card */}
+              <div className="bg-gradient-to-br from-violet-500/[0.04] to-[#5de6ff]/[0.03] rounded-xl p-5 border border-violet-500/10">
+                <p className="text-sm text-violet-400 font-bold mb-3">💡 Pro Tips</p>
+                <div className="space-y-3">
+                  {[
+                    { icon: '🔍', tip: 'Report in different areas to earn the Inspector badge' },
+                    { icon: '⚡', tip: 'Upload 3 reports in 1 hour for Fast Reporter' },
+                    { icon: '🔥', tip: 'Maintain a daily streak for bonus XP multipliers' },
+                    { icon: '✅', tip: 'Verify other reports to earn the Verifier badge' },
+                    { icon: '🤖', tip: 'Play AI Challenge to earn the AI Master badge' },
+                  ].map((t, i) => (
+                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-white/[0.02]">
+                      <span className="text-base">{t.icon}</span>
+                      <p className="text-xs text-white/40">{t.tip}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rewards breakdown */}
+              <div className="bg-white/[0.03] rounded-xl p-5 border border-white/[0.04]">
+                <p className="text-sm font-bold text-white mb-3">🎁 Points System</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { action: 'Critical pothole', pts: '+15', color: '#ff6b6b' },
+                    { action: 'Pothole report', pts: '+10', color: '#ffa94d' },
+                    { action: 'Crack report', pts: '+7', color: '#5de6ff' },
+                    { action: 'Minor damage', pts: '+5', color: '#4edea3' },
+                    { action: 'False report', pts: '-5', color: '#ff6b6b' },
+                    { action: 'Verification', pts: '+3', color: '#4edea3' },
+                    { action: 'Streak bonus/day', pts: '+5', color: '#ffa94d' },
+                    { action: 'AI challenge win', pts: '+10', color: '#5de6ff' },
+                  ].map((r, i) => (
+                    <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.02]">
+                      <span className="text-[11px] text-white/40">{r.action}</span>
+                      <span className="text-xs font-bold" style={{ color: r.color }}>{r.pts}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
