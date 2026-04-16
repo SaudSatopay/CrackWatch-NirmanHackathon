@@ -5,6 +5,15 @@
 
 ---
 
+## v3.3.13 — Login page: force spacing via inline styles
+- Tailwind mb-6/mb-10 utilities were getting overridden or not reflecting visually
+- Switched to inline `style={{ marginBottom: 32/56 }}` for guaranteed pixel-exact spacing
+- Name field: 32px gap below
+- Password field: 56px gap below button
+- Labels: 14px gap below to their inputs
+- Submit button: py-4 → py-5 (bigger target)
+- Error message: 20px margin when visible
+
 ## v3.3.12 — Login page: much more spacing (replace space-y with explicit margins)
 - space-y-6 was getting overridden by individual mt-* utilities — switched to explicit mb-* on each field
 - Gap after Name input: mb-6 (24px)
