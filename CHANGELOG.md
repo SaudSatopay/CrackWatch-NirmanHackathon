@@ -5,6 +5,11 @@
 
 ---
 
+## v1.5.6 — Fix upvote double-counting on refresh
+- Store exact upvote VALUE in localStorage (not increment)
+- Prevents 49→51 bug where increment was applied on top of already-incremented data
+- Values re-applied when reports array length changes (API load)
+
 ## v1.5.5 — Fix upvote count not incrementing
 - Upvote counts now stored in localStorage (not just IDs)
 - Demo reports (hardcoded) upvotes persist across refresh

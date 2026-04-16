@@ -59,31 +59,35 @@ export default function MapPage() {
     fixed: reports.filter(r => r.status === 'fixed').length,
   };
 
-  // Load upvotes from localStorage on mount
+  // Load upvoted IDs from localStorage
   useEffect(() => {
     const savedIds = localStorage.getItem('crackwatch_upvotes');
     if (savedIds) setUpvoted(new Set(JSON.parse(savedIds)));
-    // Also apply saved upvote increments to demo data
-    const savedCounts = JSON.parse(localStorage.getItem('crackwatch_upvote_counts') || '{}');
-    if (Object.keys(savedCounts).length > 0) {
-      setReports(prev => prev.map(r => savedCounts[r.id] ? { ...r, upvotes: r.upvotes + savedCounts[r.id] } : r));
-    }
   }, []);
+
+  // Apply saved upvote values whenever reports change
+  useEffect(() => {
+    const savedVotes = JSON.parse(localStorage.getItem('crackwatch_upvote_values') || '{}');
+    if (Object.keys(savedVotes).length > 0) {
+      setReports(prev => prev.map(r => savedVotes[r.id] !== undefined ? { ...r, upvotes: savedVotes[r.id] } : r));
+    }
+  }, [reports.length]); // re-apply when report count changes (API loaded)
 
   const handleUpvote = async (report) => {
     if (upvoted.has(report.id)) return;
+    const newCount = report.upvotes + 1;
     // Update UI
-    setReports(prev => prev.map(r => r.id === report.id ? { ...r, upvotes: r.upvotes + 1 } : r));
-    setSelected(prev => prev?.id === report.id ? { ...prev, upvotes: prev.upvotes + 1 } : prev);
+    setReports(prev => prev.map(r => r.id === report.id ? { ...r, upvotes: newCount } : r));
+    setSelected(prev => prev?.id === report.id ? { ...prev, upvotes: newCount } : prev);
     // Save upvoted IDs
     const newUpvoted = new Set([...upvoted, report.id]);
     setUpvoted(newUpvoted);
     localStorage.setItem('crackwatch_upvotes', JSON.stringify([...newUpvoted]));
-    // Save upvote counts (for demo data that doesn't persist in backend)
-    const counts = JSON.parse(localStorage.getItem('crackwatch_upvote_counts') || '{}');
-    counts[report.id] = (counts[report.id] || 0) + 1;
-    localStorage.setItem('crackwatch_upvote_counts', JSON.stringify(counts));
-    // Try API (works for real reports, silently fails for demo data)
+    // Save exact upvote VALUE (not increment — prevents double counting)
+    const savedVotes = JSON.parse(localStorage.getItem('crackwatch_upvote_values') || '{}');
+    savedVotes[report.id] = newCount;
+    localStorage.setItem('crackwatch_upvote_values', JSON.stringify(savedVotes));
+    // Try API
     try { await fetch(`${API_URL}/public/reports/${report.id}/upvote`, { method: 'POST' }); } catch {}
   };
 
