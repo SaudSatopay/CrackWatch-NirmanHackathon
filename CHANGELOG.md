@@ -5,6 +5,11 @@
 
 ---
 
+## v3.3.7 — Stats page: bigger gaps + visible borders
+- space-y-6 → space-y-8 (32px between sections, was 24px)
+- Borders doubled in visibility: white/[0.04] → white/[0.08]
+- Sections now clearly distinct — no more visual merging
+
 ## v3.3.6 — De-clutter Stats page (more breathing room + visual separation)
 - Section spacing increased: space-y-4 → space-y-6
 - Added subtle borders (border-white/[0.04]) to all cards for clearer visual separation
