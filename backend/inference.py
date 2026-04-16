@@ -283,10 +283,10 @@ class DamageDetector:
 
     # Sector → model mapping
     SECTOR_MODELS = {
-        "road": {"yolo_road": True, "yolo_crack": False, "cv": True, "label": "Road & Highway"},
-        "building": {"yolo_road": False, "yolo_crack": True, "cv": True, "label": "Building & Structure"},
+        "road": {"yolo_road": True, "yolo_crack": False, "cv": False, "label": "Road & Highway"},
+        "building": {"yolo_road": False, "yolo_crack": True, "cv": "spalling_only", "label": "Building & Structure"},
         "pipeline": {"yolo_road": False, "yolo_crack": False, "cv": True, "label": "Pipeline & Utility"},
-        "bridge": {"yolo_road": True, "yolo_crack": True, "cv": True, "label": "Bridge & Flyover"},
+        "bridge": {"yolo_road": True, "yolo_crack": True, "cv": "spalling_only", "label": "Bridge & Flyover"},
         "all": {"yolo_road": True, "yolo_crack": True, "cv": True, "label": "All Infrastructure"},
     }
 
@@ -512,7 +512,13 @@ class DamageDetector:
 
         # ── Model 3: OpenCV supplementary (spalling, leaks, corrosion, pipe damage) ──
         try:
-            cv_extras = cv_supplementary_detection(image) if models_config.get("cv") else []
+            cv_mode = models_config.get("cv")
+            if cv_mode is True:
+                cv_extras = cv_supplementary_detection(image)
+            elif cv_mode == "spalling_only":
+                cv_extras = [d for d in cv_supplementary_detection(image) if d["class_name"] == "spalling"]
+            else:
+                cv_extras = []
             for det in cv_extras:
                 # Avoid duplicates with YOLO detections
                 is_dup = False
