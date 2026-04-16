@@ -27,3 +27,6 @@ dist-ssr
 *.pem
 .env
 .env.*
+
+# Backend shared runtime store (ephemeral, regenerates on startup)
+backend/shared_store.json

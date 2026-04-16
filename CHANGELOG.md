@@ -5,6 +5,14 @@
 
 ---
 
+## v3.5.1 — Shared file store for cross-process report sync
+- Problem: WhatsApp webhook backend (port 8001 HTTP, for ngrok) and frontend backend (port 8000 HTTPS) run as separate processes with isolated in-memory state → WhatsApp reports didn't appear on govt dashboard
+- Fix: added shared_store.json file at backend/ that both processes merge with
+- Writes (`/public/report`, `/whatsapp/webhook`) call `_persist_shared_store()` after citizen_reports.append
+- Reads (`/admin/reports/map`, `/public/reports/map`, `/public/reports/map/detail`) call `_reload_shared_store()` first
+- Dedupe by id, latest file state wins on conflict
+- shared_store.json added to .gitignore (ephemeral, regenerates on startup)
+
 ## v3.5.0 — WhatsApp reporting bot (Twilio Sandbox)
 - New endpoint: POST /whatsapp/webhook (Twilio WhatsApp incoming-message webhook)
 - Citizens send a photo via WhatsApp to Twilio sandbox number (+1 415 523 8886)

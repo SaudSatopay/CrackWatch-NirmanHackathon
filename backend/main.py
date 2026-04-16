@@ -6,6 +6,7 @@ import os
 import uuid
 import time
 import io
+import json
 from datetime import datetime, timezone
 from typing import Optional
 from pathlib import Path
@@ -52,6 +53,42 @@ app.add_middleware(
 # In-memory store for detections (hackathon — no DB needed)
 detection_store: list[dict] = []
 alert_store: list[dict] = []
+
+# ── Shared file store (lets 2 backend processes share state) ──
+SHARED_STORE_FILE = Path(__file__).parent / "shared_store.json"
+
+def _persist_shared_store():
+    """Write in-memory stores to disk so other backend process can read."""
+    try:
+        SHARED_STORE_FILE.write_text(json.dumps({
+            "citizen_reports": citizen_reports,
+            "detection_store": detection_store,
+        }, default=str))
+    except Exception as e:
+        print(f"[STORE] Persist error: {e}")
+
+def _reload_shared_store():
+    """Merge shared file into in-memory stores (dedupe by id, file wins)."""
+    try:
+        if not SHARED_STORE_FILE.exists():
+            return
+        data = json.loads(SHARED_STORE_FILE.read_text())
+        shared_cr = data.get("citizen_reports", [])
+        shared_ds = data.get("detection_store", [])
+        if shared_cr:
+            merged = {r["id"]: r for r in citizen_reports}
+            for r in shared_cr:
+                merged[r["id"]] = r
+            citizen_reports.clear()
+            citizen_reports.extend(merged.values())
+        if shared_ds:
+            merged = {r["id"]: r for r in detection_store}
+            for r in shared_ds:
+                merged[r["id"]] = r
+            detection_store.clear()
+            detection_store.extend(merged.values())
+    except Exception as e:
+        print(f"[STORE] Reload error: {e}")
 
 # System settings — controllable by government admin
 system_settings = {
@@ -757,6 +794,7 @@ async def submit_citizen_report(
         "source": "citizen_report",
         "trust_score": fraud_report["combined_trust_score"],
     })
+    _persist_shared_store()
 
     # ── Award gamification points ──
     gamification_result = {}
@@ -955,6 +993,7 @@ async def whatsapp_webhook(
         "source": "whatsapp_report",
         "trust_score": 90,
     })
+    _persist_shared_store()
 
     # Award gamification
     gami = {}
@@ -1156,6 +1195,7 @@ async def all_achievements():
 @app.get("/public/reports/map")
 async def get_map_reports():
     """PUBLIC: All reports for map display (lightweight, no images)."""
+    _reload_shared_store()
     map_data = []
     for r in citizen_reports:
         loc = r["location"]
@@ -1181,6 +1221,7 @@ async def get_map_reports():
 @app.get("/public/reports/map/detail")
 async def get_map_reports_with_images():
     """PUBLIC: All reports WITH annotated images for detail view."""
+    _reload_shared_store()
     map_data = []
     for r in citizen_reports:
         loc = r["location"]
@@ -1218,6 +1259,7 @@ async def get_map_reports_with_images():
 @app.get("/admin/reports/map")
 async def get_admin_map_reports():
     """ADMIN: All reports with images + admin controls for government dashboard."""
+    _reload_shared_store()
     map_data = []
     for r in citizen_reports:
         loc = r["location"]
