@@ -271,7 +271,7 @@ export default function LiveScanPage() {
   if (!sector) {
     return (
       <div className="h-full overflow-y-auto">
-        <div className="px-5 pt-5 pb-3">
+        <div className="px-5 pt-5 pb-3 text-center">
           <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
             Live Scan
           </h1>

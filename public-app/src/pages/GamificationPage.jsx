@@ -301,7 +301,7 @@ export default function GamificationPage({ userName }) {
   return (
     <div className="h-full overflow-y-auto">
       {/* Header */}
-      <div className="px-5 pt-5 pb-3">
+      <div className="px-5 pt-5 pb-3 text-center">
         <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
           🏆 Pothole Hunter
         </h1>

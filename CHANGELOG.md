@@ -5,6 +5,12 @@
 
 ---
 
+## v3.3.4 — Center all simple page headers in public app
+- GamificationPage: "🏆 Pothole Hunter" title + subtitle centered
+- StatsPage: "Government Dashboard" title + subtitle centered
+- LiveScanPage (sector picker view): "Live Scan" title + subtitle centered
+- Complex headers (MapPage, NavigatePage, LiveScanPage scan view) left alone — they contain functional side elements (filters, hazard badges, sector badges)
+
 ## v3.3.3 — Center Report page header
 - Report Damage title + subtitle now centered (was left-aligned, getting clipped by rounded phone frame)
 
