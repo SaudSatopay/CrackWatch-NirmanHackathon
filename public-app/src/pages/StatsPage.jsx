@@ -104,10 +104,10 @@ export default function StatsPage() {
         <p className="text-[12px] text-white/40 mt-1">Public accountability & transparency</p>
       </div>
 
-      <div className="px-5 pb-8 space-y-8">
+      <div className="px-5 pb-8 space-y-10">
         {/* Performance Score */}
         <motion.div
-          className="bg-white/[0.03] rounded-2xl p-5 flex flex-col items-center border border-white/[0.08]"
+          className="bg-white/[0.04] rounded-2xl p-5 flex flex-col items-center border border-white/[0.08] shadow-xl shadow-black/40"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -129,7 +129,7 @@ export default function StatsPage() {
           ].map((s, i) => (
             <motion.div
               key={s.label}
-              className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.08]"
+              className="bg-white/[0.04] rounded-xl p-4 border border-white/[0.08] shadow-lg shadow-black/30"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: s.delay }}
@@ -149,7 +149,7 @@ export default function StatsPage() {
 
         {/* Fix Rate */}
         <motion.div
-          className="bg-white/[0.03] rounded-xl p-5 border border-white/[0.08]"
+          className="bg-white/[0.04] rounded-xl p-5 border border-white/[0.08] shadow-xl shadow-black/40"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
@@ -167,7 +167,7 @@ export default function StatsPage() {
 
         {/* Breakdown bars */}
         <motion.div
-          className="bg-white/[0.03] rounded-2xl p-5 space-y-4 border border-white/[0.08]"
+          className="bg-white/[0.04] rounded-2xl p-5 space-y-4 border border-white/[0.08] shadow-xl shadow-black/40"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -191,7 +191,7 @@ export default function StatsPage() {
 
         {/* Cost */}
         <motion.div
-          className="bg-gradient-to-br from-[#ffa94d]/[0.06] to-transparent rounded-xl p-5 border border-[#ffa94d]/10"
+          className="bg-gradient-to-br from-[#ffa94d]/[0.08] to-[#ffa94d]/[0.02] rounded-xl p-5 border border-[#ffa94d]/20 shadow-xl shadow-black/40"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}

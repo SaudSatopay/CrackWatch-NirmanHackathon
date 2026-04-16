@@ -5,6 +5,13 @@
 
 ---
 
+## v3.3.8 — Stats page: definitive card separation with shadows
+- space-y-8 → space-y-10 (40px gap between every card)
+- Added shadow-xl/shadow-lg with shadow-black/40 to every card — clear depth separation
+- Card backgrounds bumped white/[0.03] → white/[0.04] for slightly more presence
+- Cost card gradient + border made more visible (amber/[0.20] border, amber/[0.08] bg)
+- Content scrolls naturally through all sections
+
 ## v3.3.7 — Stats page: bigger gaps + visible borders
 - space-y-6 → space-y-8 (32px between sections, was 24px)
 - Borders doubled in visibility: white/[0.04] → white/[0.08]
