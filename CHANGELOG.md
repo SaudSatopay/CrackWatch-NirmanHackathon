@@ -5,6 +5,13 @@
 
 ---
 
+## v3.3.12 — Login page: much more spacing (replace space-y with explicit margins)
+- space-y-6 was getting overridden by individual mt-* utilities — switched to explicit mb-* on each field
+- Gap after Name input: mb-6 (24px)
+- Gap after Password input: mb-10 (40px — big breathing room before Get Started)
+- Label margin: mb-2.5 → mb-3
+- Error message: added mb-4 when visible
+
 ## v3.3.11 — Login page: center logo + more padding between fields
 - Logo+title wrapper now uses flex flex-col items-center (explicit horizontal centering — mx-auto wasn't working reliably inside the phone frame)
 - Form wrapper also centered with flex flex-col items-center

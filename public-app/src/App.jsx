@@ -84,9 +84,9 @@ function CitizenLogin({ onLogin }) {
           <p className="text-sm text-white/40 mt-2">Report road damage in your area</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 w-full">
-          <div>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2.5 block">Your Name</label>
+        <form onSubmit={handleSubmit} className="w-full flex flex-col">
+          <div className="mb-6">
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-3 block">Your Name</label>
             <input
               type="text"
               value={name}
@@ -97,8 +97,8 @@ function CitizenLogin({ onLogin }) {
             />
           </div>
 
-          <div>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2.5 block">Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
+          <div className="mb-10">
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-3 block">Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
             <input
               type="password"
               value={password}
@@ -109,13 +109,13 @@ function CitizenLogin({ onLogin }) {
           </div>
 
           {error && (
-            <p className="text-xs text-[#ff6b6b] text-center">{error}</p>
+            <p className="text-xs text-[#ff6b6b] text-center mb-4">{error}</p>
           )}
 
           <motion.button
             type="submit"
             disabled={!name.trim() || loading}
-            className={`w-full py-4 mt-2 rounded-2xl font-bold text-base flex items-center justify-center gap-2 ${
+            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 ${
               name.trim() ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] shadow-lg shadow-[#4edea3]/20' : 'bg-white/[0.04] text-white/20'
             }`}
             whileTap={name.trim() ? { scale: 0.98 } : {}}
