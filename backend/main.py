@@ -815,6 +815,41 @@ async def fix_streaks():
     return {"streaks": get_authority_fix_streaks(all_reports)}
 
 
+@app.post("/gamification/seed-demo")
+async def seed_demo_gamification():
+    """Seed demo gamification data for presentation."""
+    from gamification import user_profiles, get_or_create_profile, calculate_level, ACHIEVEMENTS
+    import random
+
+    demo = [
+        ("Saud Vinchu", 3200, 180, 45, 21, ["first_report","five_reports","ten_reports","twenty_five_reports","streak_3","streak_7","critical_finder","fast_reporter","multi_sector","ai_challenger"]),
+        ("Amit Kumar", 2100, 120, 38, 12, ["first_report","five_reports","ten_reports","twenty_five_reports","streak_3","streak_7","critical_finder"]),
+        ("Priya Sharma", 1650, 95, 22, 8, ["first_report","five_reports","ten_reports","streak_3","fast_reporter","verifier"]),
+        ("Vikram Thakur", 1400, 80, 28, 15, ["first_report","five_reports","ten_reports","streak_3","streak_7","critical_finder"]),
+        ("Rahul Mehta", 1100, 60, 15, 5, ["first_report","five_reports","ten_reports","streak_3"]),
+        ("Anjali Rao", 850, 45, 14, 4, ["first_report","five_reports","ten_reports"]),
+        ("Neha Desai", 650, 35, 9, 3, ["first_report","five_reports"]),
+        ("Kiran Patil", 400, 20, 7, 1, ["first_report","five_reports"]),
+        ("Dhrupad R.", 300, 15, 5, 2, ["first_report","five_reports"]),
+        ("Anshika S.", 200, 10, 3, 1, ["first_report"]),
+    ]
+
+    for name, xp, coins, reports, streak, achs in demo:
+        profile = get_or_create_profile(name, name)
+        profile["xp"] = xp
+        profile["coins"] = coins
+        profile["total_reports"] = reports
+        profile["streak_days"] = streak
+        profile["achievements"] = achs
+        profile["level"] = calculate_level(xp)
+        profile["verifications"] = random.randint(2, 15)
+        profile["ai_challenge_score"] = random.randint(5, 20)
+        profile["ai_challenges_played"] = random.randint(8, 25)
+        profile["last_report_date"] = datetime.now(timezone.utc).date().isoformat()
+
+    return {"seeded": len(demo), "message": "Demo gamification data loaded!"}
+
+
 @app.get("/gamification/achievements")
 async def all_achievements():
     """List all available achievements."""

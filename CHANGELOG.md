@@ -5,6 +5,14 @@
 
 ---
 
+## v3.1.1 — Demo data seeding + AI challenge fix
+- POST /gamification/seed-demo — seeds 10 demo users with realistic stats
+- Saud Vinchu at #1 (3200 XP, Lv.6, 45 reports, 21-day streak, 10 badges)
+- Fixed AI challenge endpoint (backend restart required)
+- Leaderboard shows proper names, levels, streaks, badge counts
+
+## v3.1.0 — Gamification UI
+
 ## v3.0.0 — Full Gamification Engine (12 features)
 
 MASSIVE update — complete citizen engagement + authority accountability system.
