@@ -12,11 +12,13 @@ import {
   Zap,
   Shield,
   MapPin,
+  Video,
 } from "lucide-react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
   { icon: Upload, label: "New Scan", id: "scan" },
+  { icon: Video, label: "Video / Live", id: "video" },
   { icon: MapPin, label: "Reports Map", id: "govt-map" },
   { icon: Zap, label: "Repair Plan", id: "repair-plan" },
   { icon: BarChart3, label: "Analytics", id: "analytics" },

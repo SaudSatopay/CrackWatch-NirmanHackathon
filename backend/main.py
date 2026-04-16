@@ -308,6 +308,147 @@ async def detect_batch(
     return {"results": results, "total_processed": len(results)}
 
 
+# ============================================================
+# VIDEO PROCESSING
+# ============================================================
+
+@app.post("/detect/video")
+async def detect_video(
+    file: UploadFile = File(...),
+    confidence: float = Form(default=0.25),
+    frame_interval: int = Form(default=30),
+):
+    """
+    Upload a video → extract frames at intervals → run AI on each frame.
+    Returns per-frame detections and an aggregate summary.
+    frame_interval: extract 1 frame every N frames (default 30 = ~1 per second at 30fps)
+    """
+    import tempfile
+    import cv2 as _cv2
+    import base64 as _b64
+    from PIL import Image as _PILImage
+
+    if not file.content_type or not file.content_type.startswith("video/"):
+        raise HTTPException(400, "File must be a video (MP4, AVI, etc.)")
+
+    # Save to temp file (OpenCV needs file path)
+    video_bytes = await file.read()
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+    tmp.write(video_bytes)
+    tmp.close()
+
+    try:
+        cap = _cv2.VideoCapture(tmp.name)
+        if not cap.isOpened():
+            raise HTTPException(400, "Could not open video file")
+
+        total_frames = int(cap.get(_cv2.CAP_PROP_FRAME_COUNT))
+        fps = cap.get(_cv2.CAP_PROP_FPS) or 30
+        duration = total_frames / fps if fps > 0 else 0
+
+        detector = get_detector()
+        frame_results = []
+        frame_num = 0
+        all_detections = []
+
+        start_time = time.time()
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            if frame_num % frame_interval == 0:
+                # Convert BGR to RGB
+                rgb = _cv2.cvtColor(frame, _cv2.COLOR_BGR2RGB)
+                pil_img = _PILImage.fromarray(rgb)
+
+                result = detector.detect(pil_img, confidence)
+                scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
+                ranked = rank_priorities(scored)
+
+                timestamp_sec = round(frame_num / fps, 2)
+
+                frame_results.append({
+                    "frame_number": frame_num,
+                    "timestamp_sec": timestamp_sec,
+                    "timestamp_display": f"{int(timestamp_sec//60)}:{int(timestamp_sec%60):02d}",
+                    "detections": ranked,
+                    "detection_count": len(ranked),
+                    "annotated_image": result["annotated_image"],
+                })
+
+                all_detections.extend(ranked)
+
+            frame_num += 1
+
+            # Safety limit — max 100 frames processed
+            if len(frame_results) >= 100:
+                break
+
+        cap.release()
+        total_time = round((time.time() - start_time) * 1000, 1)
+
+        # Aggregate stats
+        stats = compute_overall_stats(all_detections)
+
+        return {
+            "video_info": {
+                "filename": file.filename,
+                "total_frames": total_frames,
+                "fps": round(fps, 1),
+                "duration_sec": round(duration, 1),
+                "frames_analyzed": len(frame_results),
+                "frame_interval": frame_interval,
+            },
+            "frame_results": frame_results,
+            "aggregate_stats": stats,
+            "total_detections": len(all_detections),
+            "processing_time_ms": total_time,
+        }
+
+    finally:
+        os.unlink(tmp.name)
+
+
+@app.post("/detect/frame")
+async def detect_single_frame(
+    frame_data: str = Form(...),
+    confidence: float = Form(default=0.25),
+):
+    """
+    Live feed: receive a single base64-encoded frame, return detections.
+    Used by the frontend webcam/live camera feature.
+    """
+    import base64 as _b64
+    from PIL import Image as _PILImage
+    import io as _io
+
+    try:
+        # Strip data URL prefix if present
+        if "," in frame_data:
+            frame_data = frame_data.split(",")[1]
+
+        img_bytes = _b64.b64decode(frame_data)
+        pil_img = _PILImage.open(_io.BytesIO(img_bytes)).convert("RGB")
+    except Exception:
+        raise HTTPException(400, "Invalid frame data")
+
+    start_time = time.time()
+    detector = get_detector()
+    result = detector.detect(pil_img, confidence)
+    scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
+    ranked = rank_priorities(scored)
+    inference_time = round((time.time() - start_time) * 1000, 1)
+
+    return {
+        "detections": ranked,
+        "annotated_image": result["annotated_image"],
+        "detection_count": len(ranked),
+        "inference_time_ms": inference_time,
+    }
+
+
 @app.get("/repair-plan")
 async def get_repair_plan():
     """
