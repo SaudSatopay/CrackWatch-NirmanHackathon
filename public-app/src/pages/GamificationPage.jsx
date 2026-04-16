@@ -325,16 +325,49 @@ export default function GamificationPage({ userName }) {
             </motion.div>
           )}
           {tab === 'challenges' && (
-            <motion.div key="ch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                <Target className="w-4 h-4 text-[#5de6ff]" /> Today's Challenges
+            <motion.div key="ch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Target className="w-5 h-5 text-[#5de6ff]" /> Today's Challenges
               </h3>
               <Challenges data={challenges} />
+              {/* Tip card to fill space */}
+              <div className="bg-gradient-to-br from-violet-500/[0.04] to-[#5de6ff]/[0.03] rounded-xl p-5 border border-violet-500/10 mt-4">
+                <p className="text-xs text-violet-400 font-bold mb-2">💡 Pro Tips</p>
+                <ul className="space-y-2 text-xs text-white/40">
+                  <li>• Report potholes in different areas to earn the 🔍 Inspector badge</li>
+                  <li>• Upload 3 reports in 1 hour for ⚡ Fast Reporter achievement</li>
+                  <li>• Maintain a daily streak for bonus XP multipliers</li>
+                  <li>• Verify other reports to earn the ✅ Verifier badge</li>
+                </ul>
+              </div>
             </motion.div>
           )}
           {tab === 'ai' && (
-            <motion.div key="ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-violet-400" /> AI Challenge
+                </h3>
+                <span className="text-xs text-white/25">Test your knowledge</span>
+              </div>
               <AIChallenge userId={userId} />
+              {/* How it works card */}
+              <div className="bg-white/[0.02] rounded-xl p-5 border border-white/[0.04] mt-2">
+                <p className="text-xs text-white/40 font-bold mb-3">How it works</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { step: '1', title: 'Read', desc: 'AI describes a damage scenario' },
+                    { step: '2', title: 'Guess', desc: 'Pick the correct damage type' },
+                    { step: '3', title: 'Earn', desc: '+50 XP for correct answers' },
+                  ].map(s => (
+                    <div key={s.step} className="text-center">
+                      <div className="w-8 h-8 rounded-full bg-[#4edea3]/10 text-[#4edea3] text-sm font-bold flex items-center justify-center mx-auto mb-2">{s.step}</div>
+                      <p className="text-xs font-semibold text-white">{s.title}</p>
+                      <p className="text-[10px] text-white/25 mt-0.5">{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
