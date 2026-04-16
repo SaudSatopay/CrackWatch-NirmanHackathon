@@ -5,6 +5,15 @@
 
 ---
 
+## v3.6.1 — Real AI-detected demo reports across Mumbai + Navi Mumbai
+- Added backend/seed_from_images.py — reads images from any folder, runs full AI detection, generates N demo reports
+- Replaced 8 hardcoded fake demo reports with 20 real image-based reports
+- Each report has annotated_image from YOLO detection + real severity + real cost estimate
+- Distributed across 20 landmarks: 10 Mumbai (Marine Drive, Sea Link, Dadar, Andheri, BKC, etc.) + 10 Navi Mumbai (Vashi, Nerul, Belapur, Kharghar, Panvel, etc.)
+- Status mix: 9 submitted, 5 in_progress, 3 acknowledged, 3 fixed (for realistic dashboard variety)
+- Reporter variety, realistic timestamps spread across 14 days, upvote counts scaled by severity
+- Startup flow: loads from shared_store.json if present, else falls back to legacy 8-report seed
+
 ## v3.6.0 — Presentation rebuilt: 15-slide deck with all groundbreaking features
 - Completely rewrote presentation/generate.cjs with Sovereign Intelligence dark theme
 - Expanded from 12 slides to 15, adding the missing groundbreaking features

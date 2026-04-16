@@ -101,15 +101,21 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 @app.on_event("startup")
 async def startup():
-    """Pre-load model on startup so first request is fast. Auto-seed demo data for presentation."""
+    """Pre-load model on startup so first request is fast. Load demo data."""
     print("[CRACKWATCH] Starting up...")
     get_detector()
     try:
         await seed_demo_gamification()
-        await seed_demo_reports()
-        print("[CRACKWATCH] Demo data auto-seeded (gamification + reports).")
+        # Load pre-seeded image-based reports from shared_store.json if present.
+        # If the file is missing, fall back to legacy hardcoded 8-report seed.
+        _reload_shared_store()
+        if not citizen_reports:
+            await seed_demo_reports()
+            print("[CRACKWATCH] Fallback seed (8 hardcoded reports) loaded.")
+        else:
+            print(f"[CRACKWATCH] Loaded {len(citizen_reports)} reports from shared_store.json")
     except Exception as e:
-        print(f"[CRACKWATCH] Auto-seed skipped: {e}")
+        print(f"[CRACKWATCH] Auto-seed error: {e}")
     print("[CRACKWATCH] Ready.")
 
 
