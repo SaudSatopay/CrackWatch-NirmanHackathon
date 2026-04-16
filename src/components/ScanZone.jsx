@@ -135,7 +135,7 @@ export default function ScanZone() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [annotatedImage, setAnnotatedImage] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [sector, setSector] = useState("all");
+  const [sector, setSector] = useState(null);
   const [scanProgress, setScanProgress] = useState(0);
   const [results, setResults] = useState(null);
   const [scanPhase, setScanPhase] = useState("");
@@ -308,28 +308,51 @@ export default function ScanZone() {
 
   return (
     <div className="space-y-4">
-      {/* Sector selector */}
-      <div className="flex gap-2 flex-wrap">
-        {[
-          { id: "all", label: "🔍 All", desc: "All models" },
-          { id: "road", label: "🛣️ Road", desc: "Potholes & cracks" },
-          { id: "building", label: "🏢 Building", desc: "Wall cracks" },
-          { id: "pipeline", label: "🔧 Pipeline", desc: "Leaks & breaks" },
-          { id: "bridge", label: "🌉 Bridge", desc: "Structural" },
-        ].map(s => (
-          <motion.button
-            key={s.id}
-            onClick={() => setSector(s.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-              sector === s.id
-                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                : "bg-zinc-800/50 text-zinc-500 border border-zinc-800 hover:text-zinc-300"
-            }`}
-            whileTap={{ scale: 0.97 }}
-          >
-            {s.label}
-          </motion.button>
-        ))}
+      {/* Sector selector — must pick before scanning */}
+      {!sector ? (
+        <div>
+          <h3 className="text-lg font-extrabold text-white mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            What are you inspecting?
+          </h3>
+          <p className="text-sm text-zinc-500 mb-5">Select infrastructure type for targeted AI detection</p>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            {[
+              { id: "road", emoji: "🛣️", label: "Road & Highway", desc: "Potholes, cracks, surface damage", models: "YOLOv8s-RDD + CV" },
+              { id: "building", emoji: "🏢", label: "Building", desc: "Wall cracks, concrete, spalling", models: "CrackSeg + CV" },
+              { id: "pipeline", emoji: "🔧", label: "Pipeline", desc: "Leaks, corrosion, pipe breaks", models: "OpenCV" },
+              { id: "bridge", emoji: "🌉", label: "Bridge & Flyover", desc: "Structural + road damage", models: "All models" },
+              { id: "all", emoji: "🔍", label: "Full Scan", desc: "Run all AI models", models: "3 models" },
+            ].map((s, i) => (
+              <motion.button
+                key={s.id}
+                onClick={() => setSector(s.id)}
+                className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all text-left group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="text-2xl block mb-2">{s.emoji}</span>
+                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{s.label}</h4>
+                <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">{s.desc}</p>
+                <p className="text-[9px] text-zinc-600 mt-2 font-mono">{s.models}</p>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      ) : (
+      <>
+      {/* Selected sector badge + change button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+            {sector === 'road' ? '🛣️ Road' : sector === 'building' ? '🏢 Building' : sector === 'pipeline' ? '🔧 Pipeline' : sector === 'bridge' ? '🌉 Bridge' : '🔍 Full Scan'}
+          </span>
+          <span className="text-xs text-zinc-600">sector selected</span>
+        </div>
+        <button onClick={() => { setSector(null); setResults(null); setUploadedImage(null); setUploadedFile(null); setAnnotatedImage(null); }}
+          className="text-xs text-zinc-500 hover:text-zinc-300 underline">Change</button>
       </div>
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
       {/* Main scan area */}
@@ -727,6 +750,8 @@ export default function ScanZone() {
         </div>
       </div>
     </div>
+    </>
+    )}
     </div>
   );
 }

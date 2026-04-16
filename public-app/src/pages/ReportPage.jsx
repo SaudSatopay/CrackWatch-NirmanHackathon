@@ -8,7 +8,7 @@ export default function ReportPage() {
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [description, setDescription] = useState('');
-  const [sector, setSector] = useState('road');
+  const [sector, setSector] = useState(null);
   const [location, setLocation] = useState(null);
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -148,6 +148,38 @@ export default function ReportPage() {
       </div>
 
       <div className="px-5 pb-8 space-y-5">
+        {/* Sector picker — must choose first */}
+        {!sector ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-3 block">What are you reporting?</label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { id: 'road', emoji: '🛣️', label: 'Road', desc: 'Potholes & cracks' },
+                { id: 'building', emoji: '🏢', label: 'Building', desc: 'Wall cracks' },
+                { id: 'pipeline', emoji: '🔧', label: 'Pipeline', desc: 'Leaks & breaks' },
+                { id: 'bridge', emoji: '🌉', label: 'Bridge', desc: 'Structural damage' },
+              ].map((s, i) => (
+                <motion.button key={s.id} onClick={() => setSector(s.id)}
+                  className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-[#4edea3]/30 hover:bg-[#4edea3]/5 transition-all text-left"
+                  initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                  whileTap={{ scale: 0.97 }}>
+                  <span className="text-2xl block mb-2">{s.emoji}</span>
+                  <h4 className="text-sm font-bold text-white">{s.label}</h4>
+                  <p className="text-[10px] text-white/30 mt-0.5">{s.desc}</p>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+        <>
+        {/* Sector badge */}
+        <div className="flex items-center justify-between">
+          <span className="px-3 py-1.5 rounded-lg bg-[#4edea3]/10 text-[#4edea3] text-xs font-bold border border-[#4edea3]/20">
+            {sector === 'road' ? '🛣️ Road' : sector === 'building' ? '🏢 Building' : sector === 'pipeline' ? '🔧 Pipeline' : '🌉 Bridge'}
+          </span>
+          <button onClick={() => setSector(null)} className="text-xs text-white/30 underline">Change</button>
+        </div>
+
         {/* Photo upload */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <label className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold mb-2 block">Photo</label>
@@ -178,29 +210,6 @@ export default function ReportPage() {
             </button>
           )}
           <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImage} />
-        </motion.div>
-
-        {/* Sector picker */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-          <label className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold mb-2 block">What are you reporting?</label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'road', emoji: '🛣️', label: 'Road' },
-              { id: 'building', emoji: '🏢', label: 'Building' },
-              { id: 'pipeline', emoji: '🔧', label: 'Pipeline' },
-              { id: 'bridge', emoji: '🌉', label: 'Bridge' },
-            ].map(s => (
-              <button key={s.id} onClick={() => setSector(s.id)}
-                className={`py-2.5 rounded-xl text-center text-xs font-semibold transition-all ${
-                  sector === s.id
-                    ? 'bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/30'
-                    : 'bg-white/[0.03] text-white/40 border border-transparent'
-                }`}>
-                <span className="text-lg block mb-0.5">{s.emoji}</span>
-                {s.label}
-              </button>
-            ))}
-          </div>
         </motion.div>
 
         {/* GPS */}
@@ -260,6 +269,8 @@ export default function ReportPage() {
           <div className="p-4 rounded-xl bg-[#ff6b6b]/5 border border-[#ff6b6b]/10 text-[#ff6b6b] text-[12px] text-center">
             {result.message}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
