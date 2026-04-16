@@ -5,6 +5,15 @@
 
 ---
 
+## v3.3.2 — Hero landing page fits in 100vh (CTAs visible without scroll)
+- Root container: min-h-screen → h-screen (prevents overflow/scroll)
+- Headline sized down: text-5xl/7xl → text-4xl/5xl/6xl (fits 2 lines instead of 4+)
+- Subtitle: text-lg → text-base
+- Reduced vertical spacing: badge mb-6→mb-4, headline mb-6→mb-4, subtitle mb-8→mb-6, CTAs mb-10→mb-6
+- Nav py-5 → py-4
+- "Scroll to explore" → "Tap to enter" (no scroll exists now)
+- Launch Dashboard + Watch Demo buttons now visible at first paint on standard viewports
+
 ## v3.3.1 — Settings page cleanup: remove non-functional items
 - Removed entire "General" section (Dark Mode, Language, Notifications, Default Region — all were click-only placeholders with no behavior)
 - Removed fake "API Status: Healthy" row (was hardcoded, not a real health check)

@@ -310,7 +310,7 @@ export default function HeroPage({ onEnter }) {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-zinc-950 overflow-hidden flex flex-col">
+    <div className="relative h-screen bg-zinc-950 overflow-hidden flex flex-col">
       {/* Background layers */}
       <GridBackground />
       <FloatingOrbs />
@@ -331,7 +331,7 @@ export default function HeroPage({ onEnter }) {
 
       {/* Nav */}
       <motion.nav
-        className="relative z-30 flex items-center justify-between px-8 py-5"
+        className="relative z-30 flex items-center justify-between px-8 py-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
@@ -388,7 +388,7 @@ export default function HeroPage({ onEnter }) {
           <div className="flex-1 max-w-xl">
             {/* Badge */}
             <motion.div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/20 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/20 mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
@@ -406,7 +406,7 @@ export default function HeroPage({ onEnter }) {
 
             {/* Headline */}
             <motion.h1
-              className="text-5xl lg:text-7xl font-black text-white leading-[1.05] tracking-tighter mb-6"
+              className="text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tighter mb-4"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
@@ -430,7 +430,7 @@ export default function HeroPage({ onEnter }) {
 
             {/* Subtitle */}
             <motion.p
-              className="text-lg text-zinc-400 leading-relaxed mb-8 max-w-lg font-medium"
+              className="text-base text-zinc-400 leading-relaxed mb-6 max-w-lg font-medium"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
@@ -442,7 +442,7 @@ export default function HeroPage({ onEnter }) {
 
             {/* CTA Buttons */}
             <motion.div
-              className="flex items-center gap-4 mb-10"
+              className="flex items-center gap-4 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1 }}
@@ -656,7 +656,7 @@ export default function HeroPage({ onEnter }) {
           onClick={onEnter}
         >
           <span className="text-[10px] text-zinc-600 uppercase tracking-widest">
-            Scroll to explore
+            Tap to enter
           </span>
           <ChevronDown className="w-4 h-4 text-zinc-600" />
         </motion.div>
