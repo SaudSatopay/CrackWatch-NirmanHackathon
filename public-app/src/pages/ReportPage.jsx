@@ -128,8 +128,9 @@ export default function ReportPage() {
           {/* Report another */}
           <motion.button onClick={reset} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] font-bold text-sm"
             whileTap={{ scale: 0.97 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-          Report Another
-        </motion.button>
+            Report Another
+          </motion.button>
+        </div>
       </div>
     );
   }
