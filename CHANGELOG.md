@@ -5,6 +5,16 @@
 
 ---
 
+## v3.3.9 — Report page form fills full viewport + bigger buttons
+- Post-sector form wrapped in flex-col with min-h-[calc(100dvh-10rem)]
+- Photo upload zone grows to fill available space (flex-[2], min-h-[180px])
+- Description textarea grows to fill remaining space (flex-1, min-h-[90px])
+- Submit button enlarged: py-4 → py-5, text-[14px] → text-[16px], rounded-xl → rounded-2xl
+- GPS button: py-3 → py-4, text-[13px] → text-[14px]
+- Camera icon in empty state: w-7 → w-8, container w-14 → w-16
+- "Tap to take photo" text: [13px] → [14px]
+- No more empty white space below Submit Report
+
 ## v3.3.8 — Stats page: definitive card separation with shadows
 - space-y-8 → space-y-10 (40px gap between every card)
 - Added shadow-xl/shadow-lg with shadow-black/40 to every card — clear depth separation

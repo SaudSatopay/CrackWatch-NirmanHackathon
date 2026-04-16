@@ -303,41 +303,41 @@ export default function ReportPage() {
             </div>
           </motion.div>
         ) : (
-        <>
+        <div className="flex flex-col gap-5 min-h-[calc(100dvh-10rem)]">
         {/* Sector badge */}
         <div className="flex items-center justify-between">
-          <span className="px-3 py-1.5 rounded-lg bg-[#4edea3]/10 text-[#4edea3] text-xs font-bold border border-[#4edea3]/20">
+          <span className="px-3.5 py-1.5 rounded-lg bg-[#4edea3]/10 text-[#4edea3] text-xs font-bold border border-[#4edea3]/20">
             {sector === 'road' ? '🛣️ Road' : sector === 'building' ? '🏢 Building' : sector === 'pipeline' ? '🔧 Pipeline' : '🌉 Bridge'}
           </span>
           <button onClick={() => setSector(null)} className="text-xs text-white/30 underline">Change</button>
         </div>
 
-        {/* Photo upload */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        {/* Photo upload — grows to fill */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col flex-[2]">
           <label className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold mb-2 block">Photo</label>
           {image ? (
-            <div className="relative rounded-2xl overflow-hidden h-48">
+            <div className="relative rounded-2xl overflow-hidden flex-1 min-h-[180px]">
               <img src={image} alt="Upload" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               <button onClick={() => { setImage(null); setImageFile(null); }}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center">
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur flex items-center justify-center">
                 <X className="w-4 h-4 text-white" />
               </button>
-              <div className="absolute bottom-3 left-3 px-2 py-1 rounded-full bg-[#4edea3]/20 text-[#4edea3] text-[10px] font-bold">
+              <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-[#4edea3]/20 text-[#4edea3] text-[11px] font-bold">
                 ✓ Photo ready
               </div>
             </div>
           ) : (
             <button
               onClick={() => fileRef.current?.click()}
-              className="w-full h-40 rounded-2xl border-2 border-dashed border-white/[0.08] bg-white/[0.02] flex flex-col items-center justify-center gap-3 active:bg-white/[0.04] transition-colors"
+              className="w-full flex-1 min-h-[180px] rounded-2xl border-2 border-dashed border-white/[0.08] bg-white/[0.02] flex flex-col items-center justify-center gap-4 active:bg-white/[0.04] transition-colors"
             >
-              <div className="w-14 h-14 rounded-2xl bg-white/[0.04] flex items-center justify-center">
-                <Camera className="w-7 h-7 text-[#4edea3]" />
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center">
+                <Camera className="w-8 h-8 text-[#4edea3]" />
               </div>
               <div className="text-center">
-                <p className="text-[13px] font-semibold text-white">Tap to take photo</p>
-                <p className="text-[11px] text-white/30 mt-0.5">or choose from gallery</p>
+                <p className="text-[14px] font-semibold text-white">Tap to take photo</p>
+                <p className="text-[12px] text-white/30 mt-0.5">or choose from gallery</p>
               </div>
             </button>
           )}
@@ -348,41 +348,41 @@ export default function ReportPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <label className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold mb-2 block">Location</label>
           {location ? (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03]">
-              <div className="w-8 h-8 rounded-lg bg-[#4edea3]/10 flex items-center justify-center">
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/[0.03]">
+              <div className="w-9 h-9 rounded-lg bg-[#4edea3]/10 flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-[#4edea3]" />
               </div>
               <div className="flex-1">
-                <p className="text-[12px] text-white font-mono">{location.lat.toFixed(4)}, {location.lng.toFixed(4)}</p>
+                <p className="text-[13px] text-white font-mono">{location.lat.toFixed(4)}, {location.lng.toFixed(4)}</p>
               </div>
               <span className="text-[10px] text-[#4edea3] font-bold">✓ GPS</span>
             </div>
           ) : (
             <button onClick={getLocation}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/[0.03] text-white/40 text-[13px] font-medium active:bg-white/[0.06] transition-colors">
-              {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+              className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-xl bg-white/[0.03] text-white/40 text-[14px] font-medium active:bg-white/[0.06] transition-colors">
+              {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-5 h-5" />}
               {locating ? 'Getting location...' : 'Get GPS Location'}
             </button>
           )}
         </motion.div>
 
-        {/* Description */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        {/* Description — grows to fill */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex flex-col flex-1">
           <label className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold mb-2 block">Description <span className="text-white/15">(optional)</span></label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
             placeholder="e.g., Large pothole near bus stop..."
-            className="w-full px-4 py-3 rounded-xl bg-white/[0.03] text-[13px] text-white placeholder-white/15 outline-none resize-none h-24 focus:ring-1 focus:ring-[#4edea3]/30 transition-all"
+            className="w-full px-4 py-3 rounded-xl bg-white/[0.03] text-[13px] text-white placeholder-white/15 outline-none resize-none flex-1 min-h-[90px] focus:ring-1 focus:ring-[#4edea3]/30 transition-all"
           />
         </motion.div>
 
-        {/* Submit */}
+        {/* Submit — stays at bottom */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <motion.button
             onClick={submit}
             disabled={!imageFile || !location || submitting}
-            className={`w-full py-4 rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-5 rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2.5 transition-all ${
               imageFile && location && !submitting
                 ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] shadow-lg shadow-[#4edea3]/20'
                 : 'bg-white/[0.04] text-white/20'
@@ -402,7 +402,7 @@ export default function ReportPage() {
             {result.message}
           </div>
         )}
-        </>
+        </div>
         )}
       </div>
     </div>
