@@ -379,16 +379,17 @@ async def detect_video(
 
                 timestamp_sec = round(frame_num / fps, 2)
 
-                frame_results.append({
-                    "frame_number": frame_num,
-                    "timestamp_sec": timestamp_sec,
-                    "timestamp_display": f"{int(timestamp_sec//60)}:{int(timestamp_sec%60):02d}",
-                    "detections": ranked,
-                    "detection_count": len(ranked),
-                    "annotated_image": result["annotated_image"],
-                })
-
-                all_detections.extend(ranked)
+                # Only include frames with detections
+                if ranked:
+                    frame_results.append({
+                        "frame_number": frame_num,
+                        "timestamp_sec": timestamp_sec,
+                        "timestamp_display": f"{int(timestamp_sec//60)}:{int(timestamp_sec%60):02d}",
+                        "detections": ranked,
+                        "detection_count": len(ranked),
+                        "annotated_image": result["annotated_image"],
+                    })
+                    all_detections.extend(ranked)
 
             frame_num += 1
 
