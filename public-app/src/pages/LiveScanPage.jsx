@@ -4,7 +4,7 @@ import { Camera, Video, Play, Pause, StopCircle, Upload, ChevronLeft, ChevronRig
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function LiveCamera() {
+function LiveCamera({ sector = "all" }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);
@@ -48,6 +48,7 @@ function LiveCamera() {
         const fd = new FormData();
         fd.append('frame_data', frameData);
         fd.append('confidence', '0.25');
+        fd.append('sector', sector);
         const res = await fetch(`${API_URL}/detect/frame`, { method: 'POST', body: fd });
         if (res.ok) setLastResult(await res.json());
       } catch {}
@@ -150,7 +151,7 @@ function LiveCamera() {
   );
 }
 
-function VideoUpload() {
+function VideoUpload({ sector = "all" }) {
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [currentFrame, setCurrentFrame] = useState(0);
@@ -165,6 +166,7 @@ function VideoUpload() {
     fd.append('file', file);
     fd.append('confidence', '0.25');
     fd.append('frame_interval', '30');
+    fd.append('sector', sector);
     try {
       const res = await fetch(`${API_URL}/detect/video`, { method: 'POST', body: fd });
       if (res.ok) { setResult(await res.json()); setCurrentFrame(0); }
@@ -263,19 +265,58 @@ function VideoUpload() {
 }
 
 export default function LiveScanPage() {
+  const [sector, setSector] = useState(null);
   const [mode, setMode] = useState('live');
+
+  if (!sector) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="px-5 pt-5 pb-3">
+          <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
+            Live Scan
+          </h1>
+          <p className="text-[12px] text-white/40 mt-1">Select what you're scanning</p>
+        </div>
+        <div className="px-5 pb-8">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { id: 'road', emoji: '🛣️', label: 'Road', desc: 'Potholes & cracks' },
+              { id: 'building', emoji: '🏢', label: 'Building', desc: 'Wall cracks' },
+              { id: 'pipeline', emoji: '🔧', label: 'Pipeline', desc: 'Leaks & breaks' },
+              { id: 'bridge', emoji: '🌉', label: 'Bridge', desc: 'Structural' },
+            ].map((s, i) => (
+              <motion.button key={s.id} onClick={() => setSector(s.id)}
+                className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-[#4edea3]/30 transition-all text-left"
+                initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                whileTap={{ scale: 0.97 }}>
+                <span className="text-2xl block mb-2">{s.emoji}</span>
+                <h4 className="text-sm font-bold text-white">{s.label}</h4>
+                <p className="text-[10px] text-white/30 mt-0.5">{s.desc}</p>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="px-5 pt-5 pb-3">
-        <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
-          Live Scan
-        </h1>
-        <p className="text-[12px] text-white/40 mt-1">Real-time damage detection</p>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
+            Live Scan
+          </h1>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-lg bg-[#4edea3]/10 text-[#4edea3] text-[10px] font-bold border border-[#4edea3]/20">
+              {sector === 'road' ? '🛣️ Road' : sector === 'building' ? '🏢 Building' : sector === 'pipeline' ? '🔧 Pipeline' : '🌉 Bridge'}
+            </span>
+            <button onClick={() => setSector(null)} className="text-[10px] text-white/30 underline">Change</button>
+          </div>
+        </div>
       </div>
 
       <div className="px-5 pb-8 space-y-4">
-        {/* Mode toggle */}
         <div className="flex gap-2 p-1 rounded-xl bg-white/[0.03]">
           {[
             { id: 'live', label: 'Live Camera', icon: Camera },
@@ -290,7 +331,7 @@ export default function LiveScanPage() {
           ))}
         </div>
 
-        {mode === 'live' ? <LiveCamera /> : <VideoUpload />}
+        {mode === 'live' ? <LiveCamera sector={sector} /> : <VideoUpload sector={sector} />}
       </div>
     </div>
   );
