@@ -13,7 +13,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from inference import get_detector
+from inference import get_detector, check_image_authenticity
 from severity import compute_severity, compute_overall_stats
 from cost_engine import estimate_cost, rank_priorities, generate_repair_plan, explain_severity
 from auth import login, register_citizen, verify_token
@@ -184,6 +184,15 @@ async def detect_damage(
             }
             alert_store.append(alert)
 
+    # Run image authenticity check
+    from PIL import Image as PILImage
+    import io as _io
+    try:
+        pil_img = PILImage.open(_io.BytesIO(image_bytes)).convert("RGB")
+        authenticity = check_image_authenticity(pil_img)
+    except:
+        authenticity = {"trust_score": 100, "is_likely_authentic": True, "flags": [], "recommendation": "Check skipped"}
+
     return JSONResponse(content={
         "id": detection_id,
         "detections": ranked_detections,
@@ -191,6 +200,7 @@ async def detect_damage(
         "stats": stats,
         "inference_time_ms": inference_time,
         "location": record["location"],
+        "authenticity": authenticity,
     })
 
 

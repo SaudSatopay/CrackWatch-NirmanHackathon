@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, X, Navigation, AlertTriangle, Clock, CheckCircle, ChevronUp } from 'lucide-react';
 import L from 'leaflet';
@@ -117,29 +118,43 @@ export default function MapPage() {
           <FlyTo center={flyTo} />
           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
 
-          {filtered.map(r => {
-            const cfg = STATUS[r.status] || STATUS.submitted;
-            const isSelected = selected?.id === r.id;
-            return (
-              <CircleMarker
-                key={r.id}
-                center={[r.latitude, r.longitude]}
-                radius={isSelected ? 14 : r.severity > 70 ? 11 : r.severity > 40 ? 9 : 7}
-                pathOptions={{
-                  color: cfg.color,
-                  fillColor: cfg.color,
-                  fillOpacity: isSelected ? 0.5 : r.status === 'submitted' ? 0.35 : 0.15,
-                  weight: isSelected ? 3 : 2,
-                }}
-                eventHandlers={{
-                  click: () => {
-                    setSelected(r);
-                    setFlyTo([r.latitude, r.longitude]);
-                  },
-                }}
-              />
-            );
-          })}
+          <MarkerClusterGroup
+            chunkedLoading
+            maxClusterRadius={40}
+            iconCreateFunction={(cluster) => {
+              const count = cluster.getChildCount();
+              return L.divIcon({
+                html: `<div style="background:#4edea3;color:#002113;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2px solid #131315;box-shadow:0 0 12px rgba(78,222,163,0.4)">${count}</div>`,
+                className: '',
+                iconSize: [36, 36],
+              });
+            }}
+          >
+            {filtered.map(r => {
+              const cfg = STATUS[r.status] || STATUS.submitted;
+              const isSelected = selected?.id === r.id;
+              const size = isSelected ? 18 : r.severity > 70 ? 14 : r.severity > 40 ? 12 : 10;
+              const icon = L.divIcon({
+                html: `<div style="width:${size}px;height:${size}px;background:${cfg.color};border-radius:50%;border:2px solid ${isSelected ? '#fff' : '#131315'};box-shadow:0 0 ${isSelected ? '12' : '6'}px ${cfg.color}66;transition:all 0.2s"></div>`,
+                className: '',
+                iconSize: [size, size],
+                iconAnchor: [size/2, size/2],
+              });
+              return (
+                <Marker
+                  key={r.id}
+                  position={[r.latitude, r.longitude]}
+                  icon={icon}
+                  eventHandlers={{
+                    click: () => {
+                      setSelected(r);
+                      setFlyTo([r.latitude, r.longitude]);
+                    },
+                  }}
+                />
+              );
+            })}
+          </MarkerClusterGroup>
         </MapContainer>
       </div>
 
