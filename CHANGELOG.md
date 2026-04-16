@@ -5,6 +5,14 @@
 
 ---
 
+## v1.6.1 — Tap-to-report from map (debug feature)
+- Tap anywhere on the map to drop a pin and report damage at that location
+- Quick report bottom sheet: sector picker → photo → description → submit
+- Blue pulsing pin shows selected location with coordinates
+- Report auto-submits to backend with tapped GPS coordinates
+- New pin appears on map instantly after submission
+- Works for any location — not limited to user's GPS position
+
 ## v1.6.0 — Pothole-aware navigation
 - New "Navigate" tab in public app with Google Maps-style routing
 - Search from/to locations using OpenStreetMap Nominatim

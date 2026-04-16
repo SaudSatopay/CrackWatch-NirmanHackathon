@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMap } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThumbsUp, X, Navigation, AlertTriangle, Clock, CheckCircle, ChevronUp } from 'lucide-react';
+import { ThumbsUp, X, Navigation, AlertTriangle, Clock, CheckCircle, ChevronUp, Camera, Send, Loader2, MapPinPlus } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -38,12 +38,25 @@ function FlyTo({ center }) {
   return null;
 }
 
+function MapClickHandler({ onMapClick }) {
+  useMapEvents({
+    click: (e) => onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng }),
+  });
+  return null;
+}
+
 export default function MapPage() {
   const [reports, setReports] = useState(DEMO);
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState('all');
   const [flyTo, setFlyTo] = useState(null);
   const [upvoted, setUpvoted] = useState(new Set());
+  const [quickReport, setQuickReport] = useState(null); // {lat, lng}
+  const [quickSubmitting, setQuickSubmitting] = useState(false);
+  const [quickSector, setQuickSector] = useState(null);
+  const [quickDesc, setQuickDesc] = useState('');
+  const [quickFile, setQuickFile] = useState(null);
+  const quickFileRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/public/reports/map/detail`).then(r => r.json()).then(d => {
@@ -139,6 +152,18 @@ export default function MapPage() {
         <MapContainer center={[19.035, 73.035]} zoom={13} className="h-full w-full" zoomControl={false}>
           <FlyTo center={flyTo} />
           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+          <MapClickHandler onMapClick={(loc) => { setSelected(null); setQuickReport(loc); setQuickSector(null); setQuickDesc(''); setQuickFile(null); }} />
+
+          {/* Quick report pin */}
+          {quickReport && (
+            <Marker
+              position={[quickReport.lat, quickReport.lng]}
+              icon={L.divIcon({
+                html: '<div style="width:20px;height:20px;background:#5de6ff;border-radius:50%;border:3px solid #131315;box-shadow:0 0 15px #5de6ff88;animation:pulse 1.5s infinite"></div>',
+                className: '', iconSize: [20, 20], iconAnchor: [10, 10],
+              })}
+            />
+          )}
 
           <MarkerClusterGroup
             chunkedLoading
@@ -294,6 +319,120 @@ export default function MapPage() {
                     <Navigation className="w-4 h-4" />
                   </motion.button>
                 </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick report from map tap */}
+      <AnimatePresence>
+        {quickReport && !selected && (
+          <motion.div
+            initial={{ y: 400, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 400, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="absolute bottom-14 left-0 right-0 z-[1000] mx-3"
+          >
+            <div className="bg-[#1c1b1d]/95 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/[0.06] shadow-2xl shadow-black/50">
+              <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                <div className="flex items-center gap-2">
+                  <MapPinPlus className="w-4 h-4 text-[#5de6ff]" />
+                  <span className="text-xs font-bold text-white">Quick Report</span>
+                </div>
+                <button onClick={() => setQuickReport(null)} className="p-1 rounded-full bg-white/5">
+                  <X className="w-4 h-4 text-white/40" />
+                </button>
+              </div>
+
+              <div className="px-4 pb-4 space-y-3">
+                <p className="text-[11px] text-white/40 font-mono">
+                  📍 {quickReport.lat.toFixed(5)}, {quickReport.lng.toFixed(5)}
+                </p>
+
+                {/* Sector pick */}
+                {!quickSector ? (
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { id: 'road', emoji: '🛣️', label: 'Road' },
+                      { id: 'building', emoji: '🏢', label: 'Building' },
+                      { id: 'pipeline', emoji: '🔧', label: 'Pipeline' },
+                      { id: 'bridge', emoji: '🌉', label: 'Bridge' },
+                    ].map(s => (
+                      <button key={s.id} onClick={() => setQuickSector(s.id)}
+                        className="py-2 rounded-lg bg-white/[0.04] text-center hover:bg-[#4edea3]/10 transition-colors">
+                        <span className="text-lg block">{s.emoji}</span>
+                        <span className="text-[9px] text-white/40">{s.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 rounded-lg bg-[#4edea3]/10 text-[#4edea3] text-[10px] font-bold">
+                        {quickSector === 'road' ? '🛣️ Road' : quickSector === 'building' ? '🏢 Building' : quickSector === 'pipeline' ? '🔧 Pipeline' : '🌉 Bridge'}
+                      </span>
+                      <button onClick={() => setQuickSector(null)} className="text-[10px] text-white/30 underline">change</button>
+                    </div>
+
+                    {/* Photo */}
+                    <div className="flex gap-2">
+                      <button onClick={() => quickFileRef.current?.click()}
+                        className="flex-1 py-2.5 rounded-lg bg-white/[0.04] text-xs text-white/50 flex items-center justify-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5" />
+                        {quickFile ? '✓ Photo ready' : 'Add photo'}
+                      </button>
+                      <input ref={quickFileRef} type="file" accept="image/*" capture="environment" className="hidden"
+                        onChange={e => setQuickFile(e.target.files?.[0])} />
+                    </div>
+
+                    {/* Description */}
+                    <input type="text" value={quickDesc} onChange={e => setQuickDesc(e.target.value)}
+                      placeholder="Brief description (optional)"
+                      className="w-full px-3 py-2.5 rounded-lg bg-white/[0.04] text-xs text-white outline-none placeholder-white/15" />
+
+                    {/* Submit */}
+                    <motion.button
+                      onClick={async () => {
+                        if (!quickFile) { alert('Please add a photo'); return; }
+                        setQuickSubmitting(true);
+                        const fd = new FormData();
+                        fd.append('file', quickFile);
+                        fd.append('latitude', quickReport.lat);
+                        fd.append('longitude', quickReport.lng);
+                        fd.append('sector', quickSector);
+                        fd.append('description', quickDesc || `Quick report at ${quickReport.lat.toFixed(4)}, ${quickReport.lng.toFixed(4)}`);
+                        fd.append('reporter_name', 'Citizen');
+                        fd.append('location_name', 'Map tap report');
+                        try {
+                          const res = await fetch(`${API_URL}/public/report`, { method: 'POST', body: fd });
+                          const data = await res.json();
+                          if (data.id) {
+                            // Add to local reports
+                            setReports(prev => [...prev, {
+                              id: data.id, latitude: quickReport.lat, longitude: quickReport.lng,
+                              damage_type: 'Reported', severity: 50, status: 'submitted',
+                              upvotes: 1, defect_count: data.detections_count || 1,
+                              reporter: 'You', description: quickDesc, timestamp: new Date().toISOString(),
+                            }]);
+                            setQuickReport(null);
+                          }
+                        } catch { alert('Server not reachable'); }
+                        setQuickSubmitting(false);
+                      }}
+                      disabled={!quickFile || quickSubmitting}
+                      className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 ${
+                        quickFile && !quickSubmitting
+                          ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113]'
+                          : 'bg-white/[0.04] text-white/20'
+                      }`}
+                      whileTap={quickFile ? { scale: 0.97 } : {}}
+                    >
+                      {quickSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> Submit Report</>}
+                    </motion.button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
