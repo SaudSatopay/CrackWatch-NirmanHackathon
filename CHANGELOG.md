@@ -5,6 +5,18 @@
 
 ---
 
+## v3.5.2 — Stateful WhatsApp bot: two-step photo + location flow
+- Problem: WhatsApp strips EXIF GPS from photos for privacy, so all WhatsApp reports defaulted to Mumbai center coords
+- Fix: turned webhook into a two-step conversation
+  1. User sends photo → AI detection runs → bot replies with preview and asks for 📎 → Location
+  2. User shares WhatsApp location → report finalized with real GPS
+- whatsapp_sessions dict now tracks pending_photo per phone number
+- Pending photo expires after 15 minutes (prevents stale photo + fresh location mismatch)
+- If EXIF GPS is somehow preserved (rare), skips the location-ask and finalizes immediately
+- Reply labels the GPS source: "from WhatsApp location share" / "from photo GPS" / "default Mumbai"
+- New helper: _finalize_whatsapp_report(phone, reporter, lat, lng, pending, loc_source)
+- Refactored welcome + no-damage messages into module constants
+
 ## v3.5.1 — Shared file store for cross-process report sync
 - Problem: WhatsApp webhook backend (port 8001 HTTP, for ngrok) and frontend backend (port 8000 HTTPS) run as separate processes with isolated in-memory state → WhatsApp reports didn't appear on govt dashboard
 - Fix: added shared_store.json file at backend/ that both processes merge with

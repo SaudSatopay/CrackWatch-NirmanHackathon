@@ -877,95 +877,46 @@ def _extract_gps_from_exif(image_bytes: bytes):
     return None
 
 
-# Per-phone session state — tracks last interaction for multi-step convos
+# Per-phone session state — tracks pending photos + last interaction for stateful convo
 whatsapp_sessions: dict[str, dict] = {}
 
+WELCOME_MSG = (
+    "👋 Welcome to *CRACKWATCH* — India's AI-powered infrastructure damage reporter.\n\n"
+    "📸 *Step 1:* Send a photo of a pothole, crack, or damaged infrastructure.\n"
+    "📍 *Step 2:* Share your location (tap 📎 → Location → Send current location).\n\n"
+    "I'll detect the damage with AI, estimate repair cost, and submit it to authorities — all in under 10 seconds."
+)
 
-@app.post("/whatsapp/webhook")
-async def whatsapp_webhook(
-    From: str = Form(...),
-    Body: str = Form(default=""),
-    NumMedia: int = Form(default=0),
-    MediaUrl0: Optional[str] = Form(default=None),
-    MediaContentType0: Optional[str] = Form(default=None),
-    Latitude: Optional[float] = Form(default=None),
-    Longitude: Optional[float] = Form(default=None),
-    ProfileName: Optional[str] = Form(default="Citizen"),
-):
-    """
-    Twilio WhatsApp webhook — receives incoming citizen messages.
-    Flow: user sends photo → we detect damage → reply with results + report ID.
-    """
-    body = (Body or "").strip().lower()
-    phone = From.replace("whatsapp:", "")
-    reporter = ProfileName or f"WhatsApp {phone[-4:]}"
+NO_DAMAGE_MSG = (
+    "🤖 AI analysis complete.\n\n"
+    "❌ *No clear damage detected* in this photo.\n\n"
+    "💡 Tips:\n"
+    "• Stand closer to the damage\n"
+    "• Good lighting helps\n"
+    "• Fill the frame with the crack/pothole\n\n"
+    "Try another photo!"
+)
 
-    # Greeting / help message
-    if NumMedia == 0 and body in ("hi", "hello", "help", "start", ""):
-        return _twiml(
-            "👋 Welcome to *CRACKWATCH* — India's AI-powered infrastructure damage reporter.\n\n"
-            "📸 Send a photo of a pothole, crack, or damaged infrastructure and I'll:\n"
-            "• Detect the damage type with AI\n"
-            "• Estimate repair cost\n"
-            "• Submit it to the local authority\n\n"
-            "💡 Tip: share location (attachment → Location) for accurate mapping."
-        )
 
-    # No image sent
-    if NumMedia == 0:
-        return _twiml("📸 Please send a *photo* of the damage. Reply 'help' for instructions.")
-
-    # Only accept images
-    if not (MediaContentType0 or "").startswith("image/"):
-        return _twiml("⚠️ Only image attachments are supported right now.")
-
-    # Download image from Twilio
-    image_bytes = await _download_twilio_media(MediaUrl0)
-    if not image_bytes:
-        return _twiml("❌ Couldn't download your image. Please try again.")
-
-    # Resolve GPS — message location > EXIF > Mumbai default
-    lat, lng, loc_source = None, None, "default"
-    if Latitude is not None and Longitude is not None:
-        lat, lng, loc_source = float(Latitude), float(Longitude), "whatsapp_location"
-    else:
-        exif = _extract_gps_from_exif(image_bytes)
-        if exif:
-            lat, lng, loc_source = exif[0], exif[1], "exif"
-        else:
-            lat, lng, loc_source = 19.033, 73.030, "default_mumbai"
-
-    # Run AI detection
-    detector = get_detector()
-    result = detector.detect_from_bytes(image_bytes, 0.30, "all")
-    scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
-    ranked = rank_priorities(scored)
+def _finalize_whatsapp_report(phone: str, reporter: str, lat: float, lng: float, pending: dict, loc_source: str) -> Response:
+    """Create the actual report once we have BOTH the photo (pre-detected) AND location."""
+    ranked = pending["ranked"]
+    strong = pending["strong"]
+    annotated_image = pending["annotated_image"]
+    image_width = pending["image_width"]
+    image_height = pending["image_height"]
     stats = compute_overall_stats(ranked)
 
-    # No-damage guard (same as /public/report v3.4.0)
-    strong = [d for d in ranked if d.get("confidence", 0) >= 0.35]
-    if not strong:
-        return _twiml(
-            "🤖 AI analysis complete.\n\n"
-            "❌ *No clear damage detected* in this photo.\n\n"
-            "💡 Tips for a better photo:\n"
-            "• Stand closer to the damage\n"
-            "• Good lighting helps\n"
-            "• Fill the frame with the crack/pothole\n\n"
-            "Try another photo!"
-        )
-
-    # Create the report
     report_id = f"RPT-{str(uuid.uuid4())[:6].upper()}"
     now_iso = datetime.now(timezone.utc).isoformat()
     report = {
         "id": report_id,
         "timestamp": now_iso,
         "reporter": reporter,
-        "description": Body or "(via WhatsApp)",
+        "description": pending.get("description") or "(via WhatsApp)",
         "location": {"latitude": lat, "longitude": lng, "name": f"WhatsApp ({loc_source})"},
         "image_filename": f"whatsapp_{phone[-4:]}.jpg",
-        "annotated_image": result["annotated_image"],
+        "annotated_image": annotated_image,
         "detections": ranked,
         "stats": stats,
         "inference_time_ms": 0,
@@ -983,10 +934,10 @@ async def whatsapp_webhook(
         "id": report_id,
         "timestamp": now_iso,
         "filename": report["image_filename"],
-        "image_width": result["image_width"],
-        "image_height": result["image_height"],
+        "image_width": image_width,
+        "image_height": image_height,
         "detections": ranked,
-        "annotated_image": result["annotated_image"],
+        "annotated_image": annotated_image,
         "stats": stats,
         "inference_time_ms": 0,
         "location": report["location"],
@@ -995,26 +946,32 @@ async def whatsapp_webhook(
     })
     _persist_shared_store()
 
-    # Award gamification
     gami = {}
     try:
         gami = award_points(reporter, report, ranked)
     except Exception as e:
         print(f"[WhatsApp] Gamification error: {e}")
 
+    # Clear pending photo, save report id
+    whatsapp_sessions[phone]["pending_photo"] = None
+    whatsapp_sessions[phone]["last_report_id"] = report_id
+    whatsapp_sessions[phone]["last_interaction"] = now_iso
+
     # Build reply
     top = strong[0]
-    damage_name = top.get("display_name", "Damage")
     severity = top.get("severity", 0)
     cost = (top.get("cost") or {}).get("cost_estimated", 0)
     repair_method = (top.get("cost") or {}).get("repair_method", "Standard repair")
     icon = "🔴" if severity >= 70 else "🟡" if severity >= 40 else "🟢"
+    loc_label = {"whatsapp_location": "📍 (from your WhatsApp location share)",
+                 "exif": "📍 (from photo GPS)",
+                 "default_mumbai": "📍 (default — Mumbai)"}.get(loc_source, "📍")
 
     lines = [
         f"✅ *Report {report_id}* submitted!",
         "",
-        f"🤖 AI Detection:",
-        f"{icon} *{damage_name}*",
+        "🤖 AI Detection:",
+        f"{icon} *{top.get('display_name', 'Damage')}*",
         f"• Severity: {severity:.0f}/100",
         f"• Confidence: {top.get('confidence', 0)*100:.0f}%",
         f"• {len(ranked)} defect(s) found",
@@ -1022,7 +979,8 @@ async def whatsapp_webhook(
         f"💰 Estimated repair: ₹{cost:,}",
         f"🔧 Method: {repair_method}",
         "",
-        f"📍 Location: {lat:.4f}, {lng:.4f}",
+        f"{loc_label}",
+        f"   {lat:.4f}, {lng:.4f}",
     ]
     if gami and gami.get("points_earned", 0) > 0:
         lines += [
@@ -1037,11 +995,107 @@ async def whatsapp_webhook(
         "🔗 Track on the public map.",
         "Authority has been notified. Thank you!",
     ]
-
-    # Save session state
-    whatsapp_sessions[phone] = {"last_report_id": report_id, "last_interaction": now_iso}
-
     return _twiml("\n".join(lines))
+
+
+@app.post("/whatsapp/webhook")
+async def whatsapp_webhook(
+    From: str = Form(...),
+    Body: str = Form(default=""),
+    NumMedia: int = Form(default=0),
+    MediaUrl0: Optional[str] = Form(default=None),
+    MediaContentType0: Optional[str] = Form(default=None),
+    Latitude: Optional[float] = Form(default=None),
+    Longitude: Optional[float] = Form(default=None),
+    ProfileName: Optional[str] = Form(default="Citizen"),
+):
+    """
+    Stateful WhatsApp webhook — two-step flow:
+      1. User sends photo  → AI detection runs, bot asks for location
+      2. User shares location → report finalized, bot replies with full summary
+    """
+    body = (Body or "").strip().lower()
+    phone = From.replace("whatsapp:", "")
+    reporter = ProfileName or f"WhatsApp {phone[-4:]}"
+    session = whatsapp_sessions.setdefault(phone, {"pending_photo": None})
+
+    # ─── Path 1: User shared a LOCATION (no image attached) ───
+    if Latitude is not None and Longitude is not None and NumMedia == 0:
+        pending = session.get("pending_photo")
+        if not pending:
+            return _twiml(
+                "📍 Got your location — but I don't have a damage photo yet!\n\n"
+                "Please send a *photo* of the damage first, then share this location again."
+            )
+        # Check pending photo age (expire after 15 min)
+        try:
+            p_ts = datetime.fromisoformat(pending["timestamp"])
+            age_min = (datetime.now(timezone.utc) - p_ts).total_seconds() / 60
+            if age_min > 15:
+                session["pending_photo"] = None
+                return _twiml("⏱️ Your previous photo expired (>15 min). Please send a fresh photo.")
+        except Exception:
+            pass
+        return _finalize_whatsapp_report(phone, reporter, float(Latitude), float(Longitude), pending, "whatsapp_location")
+
+    # ─── Path 2: User sent a PHOTO ───
+    if NumMedia > 0:
+        if not (MediaContentType0 or "").startswith("image/"):
+            return _twiml("⚠️ Only image attachments are supported right now.")
+
+        image_bytes = await _download_twilio_media(MediaUrl0)
+        if not image_bytes:
+            return _twiml("❌ Couldn't download your image. Please try again.")
+
+        # Run AI detection immediately so user gets instant feedback
+        detector = get_detector()
+        result = detector.detect_from_bytes(image_bytes, 0.30, "all")
+        scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
+        ranked = rank_priorities(scored)
+        strong = [d for d in ranked if d.get("confidence", 0) >= 0.35]
+
+        if not strong:
+            # Clear any pending photo — this one was invalid
+            session["pending_photo"] = None
+            return _twiml(NO_DAMAGE_MSG)
+
+        # Store pending state (image bytes NOT kept — annotated base64 is enough)
+        pending = {
+            "annotated_image": result["annotated_image"],
+            "image_width": result["image_width"],
+            "image_height": result["image_height"],
+            "ranked": ranked,
+            "strong": strong,
+            "description": Body,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        session["pending_photo"] = pending
+
+        # Try EXIF GPS first (rare — WhatsApp strips this — but try anyway)
+        exif = _extract_gps_from_exif(image_bytes)
+        if exif:
+            return _finalize_whatsapp_report(phone, reporter, exif[0], exif[1], pending, "exif")
+
+        # Otherwise, ask for location explicitly
+        top = strong[0]
+        severity = top.get("severity", 0)
+        icon = "🔴" if severity >= 70 else "🟡" if severity >= 40 else "🟢"
+        return _twiml(
+            "📸 *Got your photo!*\n\n"
+            f"🤖 AI preview:\n"
+            f"{icon} *{top.get('display_name', 'Damage')}* ({top.get('confidence', 0)*100:.0f}% confidence, {severity:.0f}/100 severity)\n\n"
+            "📍 *Now share your location* so we can map exactly where this is:\n"
+            "Tap 📎 (attachment) → *Location* → *Send current location*\n\n"
+            "_Your report will be finalized as soon as location arrives._"
+        )
+
+    # ─── Path 3: Text message (greeting or unknown) ───
+    if body in ("hi", "hello", "help", "start", "hey", "menu", ""):
+        return _twiml(WELCOME_MSG)
+    return _twiml(
+        "I didn't catch that. 🤖\n\n"
+        "Send me a *photo* of damage, or reply 'help' for instructions."
+    )
 
 
 # ============================================================
