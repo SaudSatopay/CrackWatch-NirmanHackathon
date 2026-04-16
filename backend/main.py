@@ -20,6 +20,10 @@ from auth import login, register_citizen, verify_token
 from fraud_detection import run_full_fraud_check
 from analytics_engine import generate_wall_of_shame, generate_heatmap_data, generate_priority_queue, generate_city_health_scores
 from predictive_engine import predict_all_detections, generate_area_forecast
+from gamification import (
+    award_points, get_leaderboard, get_user_profile_full, get_daily_challenges,
+    community_vote, ai_challenge_round, check_ai_challenge, get_authority_fix_streaks,
+)
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -724,6 +728,14 @@ async def submit_citizen_report(
         "trust_score": fraud_report["combined_trust_score"],
     })
 
+    # ── Award gamification points ──
+    gamification_result = {}
+    if fraud_report["action"] != "block_submission":
+        try:
+            gamification_result = award_points(reporter_name or "anonymous", report, ranked)
+        except Exception as e:
+            print(f"[CRACKWATCH] Gamification error: {e}")
+
     return {
         "id": report_id,
         "status": "submitted" if fraud_report["action"] == "auto_approve" else "under_review",
@@ -736,6 +748,7 @@ async def submit_citizen_report(
         "trust_score": fraud_report["combined_trust_score"],
         "trust_verdict": fraud_report["verdict"],
         "flags": fraud_report["flags"],
+        "gamification": gamification_result,
         "message": (
             "Report submitted! Authorities have been notified."
             if fraud_report["action"] == "auto_approve"
@@ -743,6 +756,70 @@ async def submit_citizen_report(
         ),
         "fraud_check": fraud_report,
     }
+
+
+# ============================================================
+# GAMIFICATION ENDPOINTS
+# ============================================================
+
+@app.get("/gamification/leaderboard")
+async def leaderboard():
+    """Pothole Hunter leaderboard — top citizens by XP."""
+    return {"leaderboard": get_leaderboard(20)}
+
+
+@app.get("/gamification/profile/{user_id}")
+async def user_profile(user_id: str):
+    """Get full user gamification profile."""
+    return get_user_profile_full(user_id)
+
+
+@app.get("/gamification/challenges/{user_id}")
+async def daily_challenges(user_id: str):
+    """Get today's challenges with progress."""
+    return {"challenges": get_daily_challenges(user_id)}
+
+
+@app.post("/gamification/verify")
+async def verify_report(
+    report_id: str = Form(...),
+    voter_id: str = Form(...),
+    vote: str = Form(...),
+):
+    """Community verification vote — valid or invalid."""
+    if vote not in ("valid", "invalid"):
+        raise HTTPException(400, "Vote must be 'valid' or 'invalid'")
+    return community_vote(report_id, voter_id, vote)
+
+
+@app.get("/gamification/ai-challenge")
+async def ai_challenge():
+    """Get an AI Challenge Mode round."""
+    return ai_challenge_round()
+
+
+@app.post("/gamification/ai-challenge/answer")
+async def ai_challenge_answer(
+    user_id: str = Form(...),
+    answer: str = Form(...),
+    correct_answer: str = Form(...),
+):
+    """Submit AI challenge answer."""
+    return check_ai_challenge(user_id, answer, correct_answer)
+
+
+@app.get("/gamification/fix-streaks")
+async def fix_streaks():
+    """Authority fix streak leaderboard."""
+    all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
+    return {"streaks": get_authority_fix_streaks(all_reports)}
+
+
+@app.get("/gamification/achievements")
+async def all_achievements():
+    """List all available achievements."""
+    from gamification import ACHIEVEMENTS
+    return {"achievements": [{"id": k, **v} for k, v in ACHIEVEMENTS.items()]}
 
 
 @app.get("/public/reports/map")

@@ -5,6 +5,67 @@
 
 ---
 
+## v3.0.0 — Full Gamification Engine (12 features)
+
+MASSIVE update — complete citizen engagement + authority accountability system.
+
+1. POTHOLE HUNTER LEADERBOARD
+   - Citizens ranked by XP (earned from valid reports)
+   - Points: +15 critical, +10 pothole, +7 crack, +5 minor, -5 false
+   - GET /gamification/leaderboard
+
+2. DAILY/WEEKLY CHALLENGES
+   - "Report 5 potholes today", "Find a critical road", etc.
+   - Progress tracking per user
+   - GET /gamification/challenges/{user_id}
+
+3. CIVIC COINS SYSTEM
+   - Earn coins from reports, verifications, streaks
+   - Starting bonus: 50 coins
+   - Every report awards coins based on severity
+
+4. COMMUNITY VERIFICATION (Voting)
+   - POST /gamification/verify — vote valid/invalid on reports
+   - Verifiers earn XP + coins
+   - Consensus tracking (valid/invalid/undecided)
+
+5. ACHIEVEMENT SYSTEM (13 badges)
+   - 🕵️ First Report, 📸 Scout (5), 🔥 Road Warrior (10)
+   - 🛠️ Civic Hero (25), 🌍 City Saver (50)
+   - ⚡ Fast Reporter, 🔥 3/7/30-Day Streaks
+   - ✅ Verifier, 🚨 Critical Finder, 🔍 Inspector
+   - 🤖 AI Master
+
+6. FIX STREAK SYSTEM (Authorities)
+   - Track consecutive fixes per area
+   - "🔥 On fire!" for 5+ streak
+   - GET /gamification/fix-streaks
+
+7. DAMAGE STREAK DETECTION
+   - Auto-tracks consecutive reporting days
+   - Bonus XP per streak day
+
+8. AI CHALLENGE MODE
+   - GET /gamification/ai-challenge — random scenario
+   - 4 options, user guesses damage type
+   - POST answer → correct/wrong + accuracy tracking
+
+9. LEVEL SYSTEM
+   - Level = sqrt(XP / 100) + 1
+   - Shown on profile + leaderboard
+
+10. PERSONAL IMPACT DASHBOARD
+    - GET /gamification/profile/{user_id}
+    - Total reports, coins, streak, achievements, sectors
+
+11. TIME-TO-FIX RACE
+    - Authority areas ranked by fix speed
+    - Fastest repair times shown
+
+12. AUTO POINTS ON REPORT
+    - Every /public/report now returns gamification data
+    - Points, XP, coins, new achievements in response
+
 ## v2.2.0 — Predictive Maintenance Engine
 "This road will fail in X days"
 
