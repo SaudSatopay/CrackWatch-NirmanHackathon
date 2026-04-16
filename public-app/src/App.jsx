@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User, LogOut } from 'lucide-react';
+import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User, LogOut, Video } from 'lucide-react';
 import MapPage from './pages/MapPage';
 import ReportPage from './pages/ReportPage';
 import StatsPage from './pages/StatsPage';
+import LiveScanPage from './pages/LiveScanPage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const tabs = [
   { id: 'map', label: 'Map', icon: MapPin },
   { id: 'report', label: 'Report', icon: Camera },
-  { id: 'stats', label: 'Dashboard', icon: BarChart3 },
-  { id: 'logout', label: 'Logout', icon: LogOut },
+  { id: 'live', label: 'Live', icon: Video },
+  { id: 'stats', label: 'Stats', icon: BarChart3 },
+  { id: 'logout', label: 'Exit', icon: LogOut },
 ];
 
 function CitizenLogin({ onLogin }) {
@@ -120,6 +122,11 @@ export default function App() {
           {activeTab === 'report' && (
             <motion.div key="report" className="h-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }}>
               <ReportPage userName={user.name} />
+            </motion.div>
+          )}
+          {activeTab === 'live' && (
+            <motion.div key="live" className="h-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }}>
+              <LiveScanPage />
             </motion.div>
           )}
           {activeTab === 'stats' && (
