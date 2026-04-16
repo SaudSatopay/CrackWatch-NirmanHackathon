@@ -5,6 +5,17 @@
 
 ---
 
+## v1.6.0 — Pothole-aware navigation
+- New "Navigate" tab in public app with Google Maps-style routing
+- Search from/to locations using OpenStreetMap Nominatim
+- Auto-detects user GPS location as start point
+- "Avoid Potholes" toggle — shows danger zones on route
+- Pothole danger zones visualized (red circles for high severity)
+- Route drawn with emerald green line, alternatives in cyan
+- Counts hazards along each route
+- Bottom legend showing risk levels
+- Uses Leaflet Routing Machine (OSRM) for free routing
+
 ## v1.5.6 — Fix upvote double-counting on refresh
 - Store exact upvote VALUE in localStorage (not increment)
 - Prevents 49→51 bug where increment was applied on top of already-incremented data
