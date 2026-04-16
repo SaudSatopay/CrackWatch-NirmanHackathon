@@ -5,6 +5,9 @@
 
 ---
 
+## v3.3.3 — Center Report page header
+- Report Damage title + subtitle now centered (was left-aligned, getting clipped by rounded phone frame)
+
 ## v3.3.2 — Hero landing page fits in 100vh (CTAs visible without scroll)
 - Root container: min-h-screen → h-screen (prevents overflow/scroll)
 - Headline sized down: text-5xl/7xl → text-4xl/5xl/6xl (fits 2 lines instead of 4+)

@@ -269,7 +269,7 @@ export default function ReportPage() {
   return (
     <div className="h-full overflow-y-auto">
       {/* Header */}
-      <div className="px-5 pt-5 pb-3 bg-gradient-to-b from-[#131315] to-transparent sticky top-0 z-10">
+      <div className="px-5 pt-5 pb-3 bg-gradient-to-b from-[#131315] to-transparent sticky top-0 z-10 text-center">
         <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
           Report Damage
         </h1>
