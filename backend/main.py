@@ -18,6 +18,7 @@ from severity import compute_severity, compute_overall_stats
 from cost_engine import estimate_cost, rank_priorities, generate_repair_plan, explain_severity
 from auth import login, register_citizen, verify_token
 from fraud_detection import run_full_fraud_check
+from analytics_engine import generate_wall_of_shame, generate_heatmap_data, generate_priority_queue, generate_city_health_scores
 
 app = FastAPI(
     title="CRACKWATCH API",
@@ -517,6 +518,87 @@ async def get_detection_repair_plan(detection_id: str):
             plan = generate_repair_plan(r["detections"], location=location_name)
             return plan
     raise HTTPException(404, "Detection not found")
+
+
+# ============================================================
+# ============================================================
+# ADVANCED ANALYTICS
+# ============================================================
+
+@app.get("/analytics/wall-of-shame")
+async def wall_of_shame():
+    """Wall of Shame — contractor accountability leaderboard."""
+    all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
+    return generate_wall_of_shame(all_reports)
+
+
+@app.get("/analytics/heatmap")
+async def damage_heatmap():
+    """Smart Damage Heatmap data points."""
+    all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
+    points = generate_heatmap_data(all_reports)
+    return {"points": points, "total": len(points)}
+
+
+@app.get("/analytics/priority-queue")
+async def maintenance_priority():
+    """Maintenance Priority Engine — what to fix first."""
+    all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
+    priorities = generate_priority_queue(all_reports)
+    return {"priorities": priorities[:10], "total_unfixed": len(priorities)}
+
+
+@app.get("/analytics/city-health")
+async def city_health():
+    """Road Health Score per city/area."""
+    all_reports = citizen_reports + [r for r in detection_store if r.get("source") != "citizen_report"]
+    scores = generate_city_health_scores(all_reports)
+    return {"cities": scores, "total_cities": len(scores)}
+
+
+@app.post("/analytics/before-after")
+async def before_after_comparison(
+    before_file: UploadFile = File(...),
+    after_file: UploadFile = File(...),
+    sector: str = Form(default="road"),
+):
+    """Before vs After — compare two images and show improvement."""
+    detector = get_detector()
+
+    before_bytes = await before_file.read()
+    after_bytes = await after_file.read()
+
+    before_result = detector.detect_from_bytes(before_bytes, 0.20, sector)
+    after_result = detector.detect_from_bytes(after_bytes, 0.20, sector)
+
+    before_scored = compute_severity(before_result["detections"], before_result["image_width"], before_result["image_height"])
+    after_scored = compute_severity(after_result["detections"], after_result["image_width"], after_result["image_height"])
+
+    before_stats = compute_overall_stats(before_scored)
+    after_stats = compute_overall_stats(after_scored)
+
+    # Calculate improvement
+    sev_before = before_stats.get("avg_severity", 0)
+    sev_after = after_stats.get("avg_severity", 0)
+    improvement = round(((sev_before - sev_after) / max(sev_before, 1)) * 100, 1)
+
+    return {
+        "before": {
+            "detections": len(before_scored),
+            "avg_severity": sev_before,
+            "integrity": before_stats.get("structural_integrity", 0),
+            "annotated_image": before_result["annotated_image"],
+        },
+        "after": {
+            "detections": len(after_scored),
+            "avg_severity": sev_after,
+            "integrity": after_stats.get("structural_integrity", 0),
+            "annotated_image": after_result["annotated_image"],
+        },
+        "improvement_pct": improvement,
+        "severity_reduced": round(sev_before - sev_after, 1),
+        "verdict": "Improved" if improvement > 10 else "Minimal change" if improvement > -10 else "Worsened",
+    }
 
 
 # ============================================================

@@ -5,6 +5,38 @@
 
 ---
 
+## v2.1.0 — Advanced Analytics: Wall of Shame + Priority Engine + City Health + Before/After
+5 major analytics features:
+
+1. WALL OF SHAME (Contractor Accountability):
+   - Ranks contractors by performance + negligence score
+   - Negligence = severity × days unresolved
+   - Worst performer at top (most shameful)
+   - Shows fix rate, unfixed count per contractor
+
+2. MAINTENANCE PRIORITY ENGINE:
+   - Priority = Severity × Days Unresolved × Community Votes
+   - Top 5 most urgent repairs with cost estimates
+   - Formula shown for each entry
+
+3. CITY ROAD HEALTH SCORE:
+   - 0-100 health rating per city/area
+   - Based on: damage density, severity, fix speed
+   - Trend indicator: improving/stable/worsening
+   - Animated health bars
+
+4. BEFORE vs AFTER TRACKING:
+   - POST /analytics/before-after — upload 2 images
+   - AI detects damage in both, calculates improvement %
+   - Returns annotated images + severity reduction
+
+5. SMART DAMAGE HEATMAP:
+   - GET /analytics/heatmap — lat/lng/intensity points
+   - Intensity based on severity + fix status
+
+New AdvancedAnalytics component replaces old AnalyticsChart.
+Tab selector: Wall of Shame | Fix Priority | City Health
+
 ## v2.0.3 — Govt toggle for fraud detection system
 - Government Settings page: toggle switch for Fake Report Detection
 - Toggle ON: 5-layer fraud check runs on every citizen report

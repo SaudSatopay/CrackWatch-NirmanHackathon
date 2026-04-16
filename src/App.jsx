@@ -12,6 +12,7 @@ import GovtMap from "@/components/GovtMap";
 import VideoScan from "@/components/VideoScan";
 import LoginPage from "@/components/LoginPage";
 import SettingsPage from "@/components/SettingsPage";
+import AdvancedAnalytics from "@/components/AdvancedAnalytics";
 import {
   Bell,
   Search,
@@ -182,7 +183,7 @@ function Dashboard({ activeTab, setActiveTab, user, onLogout }) {
             )}
             {activeTab === "analytics" && (
               <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <AnalyticsChart />
+                <AdvancedAnalytics />
               </motion.div>
             )}
             {activeTab === "history" && (
