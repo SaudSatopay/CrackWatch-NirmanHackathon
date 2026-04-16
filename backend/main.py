@@ -92,10 +92,18 @@ async def auth_me(request: Request):
     return {"username": payload["sub"], "role": payload["role"], "name": payload["name"]}
 
 
+@app.get("/sectors")
+async def get_sectors():
+    """List available infrastructure sectors for targeted detection."""
+    detector = get_detector()
+    return {"sectors": detector.get_available_sectors()}
+
+
 @app.post("/detect")
 async def detect_damage(
     file: UploadFile = File(...),
     confidence: float = Form(default=0.25),
+    sector: str = Form(default="all"),
     latitude: Optional[float] = Form(default=None),
     longitude: Optional[float] = Form(default=None),
     location_name: Optional[str] = Form(default=None),
@@ -118,7 +126,7 @@ async def detect_damage(
     # Run detection
     start_time = time.time()
     detector = get_detector()
-    result = detector.detect_from_bytes(image_bytes, confidence)
+    result = detector.detect_from_bytes(image_bytes, confidence, sector)
     inference_time = round((time.time() - start_time) * 1000, 1)  # ms
 
     # Compute severity scores
@@ -501,6 +509,7 @@ async def submit_citizen_report(
     file: UploadFile = File(...),
     latitude: float = Form(...),
     longitude: float = Form(...),
+    sector: str = Form(default="road"),
     description: Optional[str] = Form(default=""),
     reporter_name: Optional[str] = Form(default="Anonymous"),
     location_name: Optional[str] = Form(default=""),
@@ -517,7 +526,7 @@ async def submit_citizen_report(
     # Run AI detection on citizen's photo
     start_time = time.time()
     detector = get_detector()
-    result = detector.detect_from_bytes(image_bytes, 0.20)
+    result = detector.detect_from_bytes(image_bytes, 0.20, sector)
     inference_time = round((time.time() - start_time) * 1000, 1)
 
     scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
