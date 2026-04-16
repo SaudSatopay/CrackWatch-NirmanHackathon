@@ -281,8 +281,17 @@ class DamageDetector:
         print("[CRACKWATCH] OpenCV supplementary detection: enabled")
         print(f"[CRACKWATCH] Multi-model pipeline ready: Road={'✓' if self.local_model else '✗'} | Building={'✓' if self.crack_model else '✗'} | CV=✓")
 
-    def detect(self, image: Image.Image, confidence_threshold: float = 0.25) -> dict:
-        """Run detection on a PIL Image. Tries Roboflow first, falls back to CV."""
+    # Sector → model mapping
+    SECTOR_MODELS = {
+        "road": {"yolo_road": True, "yolo_crack": False, "cv": True, "label": "Road & Highway"},
+        "building": {"yolo_road": False, "yolo_crack": True, "cv": True, "label": "Building & Structure"},
+        "pipeline": {"yolo_road": False, "yolo_crack": False, "cv": True, "label": "Pipeline & Utility"},
+        "bridge": {"yolo_road": True, "yolo_crack": True, "cv": True, "label": "Bridge & Flyover"},
+        "all": {"yolo_road": True, "yolo_crack": True, "cv": True, "label": "All Infrastructure"},
+    }
+
+    def detect(self, image: Image.Image, confidence_threshold: float = 0.25, sector: str = "all") -> dict:
+        """Run detection on a PIL Image. Sector-specific model selection."""
         if self.use_roboflow:
             try:
                 result = self._detect_roboflow(image, confidence_threshold)
@@ -316,7 +325,7 @@ class DamageDetector:
                     print(f"[CRACKWATCH] CV fallback error: {e}")
             return result
         else:
-            return self._detect_local(image, confidence_threshold)
+            return self._detect_local(image, confidence_threshold, sector)
 
     def _detect_cv_only(self, image: Image.Image) -> dict:
         """Fallback: OpenCV-only detection when Roboflow is unavailable."""
@@ -436,8 +445,9 @@ class DamageDetector:
             "detection_count": len(detections),
         }
 
-    def _detect_local(self, image: Image.Image, confidence_threshold: float) -> dict:
-        """Multi-model local detection: road + building cracks + CV supplement."""
+    def _detect_local(self, image: Image.Image, confidence_threshold: float, sector: str = "all") -> dict:
+        """Sector-specific multi-model detection."""
+        models_config = self.SECTOR_MODELS.get(sector, self.SECTOR_MODELS["all"])
         img_np = np.array(image)
         if len(img_np.shape) == 2:
             img_np = cv2.cvtColor(img_np, cv2.COLOR_GRAY2RGB)
@@ -448,7 +458,7 @@ class DamageDetector:
         detections = []
 
         # ── Model 1: Road damage (D00, D10, D20, Potholes) ──
-        if self.local_model:
+        if self.local_model and models_config.get("yolo_road"):
             results = self.local_model(img_np, conf=confidence_threshold, verbose=False)
             result = results[0]
             for box in result.boxes:
@@ -467,7 +477,7 @@ class DamageDetector:
                 })
 
         # ── Model 2: Building/wall crack segmentation ──
-        if self.crack_model:
+        if self.crack_model and models_config.get("yolo_crack"):
             try:
                 crack_results = self.crack_model(img_np, conf=max(0.3, confidence_threshold), verbose=False)
                 crack_result = crack_results[0]
@@ -502,7 +512,7 @@ class DamageDetector:
 
         # ── Model 3: OpenCV supplementary (spalling, leaks, corrosion, pipe damage) ──
         try:
-            cv_extras = cv_supplementary_detection(image)
+            cv_extras = cv_supplementary_detection(image) if models_config.get("cv") else []
             for det in cv_extras:
                 # Avoid duplicates with YOLO detections
                 is_dup = False
@@ -554,10 +564,20 @@ class DamageDetector:
             "detection_count": len(detections),
         }
 
-    def detect_from_bytes(self, image_bytes: bytes, confidence_threshold: float = 0.25) -> dict:
+    def detect_from_bytes(self, image_bytes: bytes, confidence_threshold: float = 0.25, sector: str = "all") -> dict:
         """Run detection from raw image bytes."""
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        return self.detect(image, confidence_threshold)
+        return self.detect(image, confidence_threshold, sector)
+
+    def get_available_sectors(self):
+        """Return list of available sectors with their descriptions."""
+        return [
+            {"id": "road", "label": "🛣️ Road & Highway", "desc": "Potholes, cracks, road surface damage", "models": ["YOLOv8s-RDD", "OpenCV"]},
+            {"id": "building", "label": "🏢 Building & Structure", "desc": "Wall cracks, concrete damage, spalling", "models": ["YOLOv8s-CrackSeg", "OpenCV"]},
+            {"id": "pipeline", "label": "🔧 Pipeline & Utility", "desc": "Pipe breaks, leaks, corrosion", "models": ["OpenCV"]},
+            {"id": "bridge", "label": "🌉 Bridge & Flyover", "desc": "Structural cracks + road damage", "models": ["YOLOv8s-RDD", "YOLOv8s-CrackSeg", "OpenCV"]},
+            {"id": "all", "label": "🔍 All Infrastructure", "desc": "Run all models for comprehensive scan", "models": ["All 3 models"]},
+        ]
 
 
 # Singleton

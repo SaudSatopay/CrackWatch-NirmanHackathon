@@ -135,6 +135,7 @@ export default function ScanZone() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [annotatedImage, setAnnotatedImage] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [sector, setSector] = useState("all");
   const [scanProgress, setScanProgress] = useState(0);
   const [results, setResults] = useState(null);
   const [scanPhase, setScanPhase] = useState("");
@@ -204,6 +205,7 @@ export default function ScanZone() {
         formData.append('file', blob, 'demo.png');
       }
       formData.append('confidence', '0.25');
+      formData.append('sector', sector);
 
       const res = await fetch(`${API_URL}/detect`, {
         method: 'POST',
@@ -305,6 +307,30 @@ export default function ScanZone() {
   };
 
   return (
+    <div className="space-y-4">
+      {/* Sector selector */}
+      <div className="flex gap-2 flex-wrap">
+        {[
+          { id: "all", label: "🔍 All", desc: "All models" },
+          { id: "road", label: "🛣️ Road", desc: "Potholes & cracks" },
+          { id: "building", label: "🏢 Building", desc: "Wall cracks" },
+          { id: "pipeline", label: "🔧 Pipeline", desc: "Leaks & breaks" },
+          { id: "bridge", label: "🌉 Bridge", desc: "Structural" },
+        ].map(s => (
+          <motion.button
+            key={s.id}
+            onClick={() => setSector(s.id)}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              sector === s.id
+                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                : "bg-zinc-800/50 text-zinc-500 border border-zinc-800 hover:text-zinc-300"
+            }`}
+            whileTap={{ scale: 0.97 }}
+          >
+            {s.label}
+          </motion.button>
+        ))}
+      </div>
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
       {/* Main scan area */}
       <div className="lg:col-span-3">
@@ -700,6 +726,7 @@ export default function ScanZone() {
           </AnimatePresence>
         </div>
       </div>
+    </div>
     </div>
   );
 }
