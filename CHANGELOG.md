@@ -5,6 +5,13 @@
 
 ---
 
+## v3.3.11 — Login page: center logo + more padding between fields
+- Logo+title wrapper now uses flex flex-col items-center (explicit horizontal centering — mx-auto wasn't working reliably inside the phone frame)
+- Form wrapper also centered with flex flex-col items-center
+- Fields gap: space-y-4 → space-y-6 (24px instead of 16px between Name and Password)
+- Label bottom margin: mb-2 → mb-2.5
+- Submit button: added mt-2 to push it off the password field
+
 ## v3.3.10 — De-clutter Rewards page (profile + achievements)
 - ProfileCard: added shadow-xl for depth, mb-5 → mb-6 between header/XP bar/stats
 - Inner stat cards (Day Streak/Badges/Reports): py-3 → py-4, added subtle border

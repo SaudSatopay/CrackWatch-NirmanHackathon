@@ -73,9 +73,9 @@ function CitizenLogin({ onLogin }) {
       {/* Push content to center vertically */}
       <div className="flex-1" />
 
-      <motion.div className="relative z-10 w-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-[#4edea3]/10 border border-[#4edea3]/20 flex items-center justify-center mx-auto mb-5">
+      <motion.div className="relative z-10 w-full flex flex-col items-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="flex flex-col items-center mb-10 w-full">
+          <div className="w-16 h-16 rounded-2xl bg-[#4edea3]/10 border border-[#4edea3]/20 flex items-center justify-center mb-5">
             <ScanLine className="w-8 h-8 text-[#4edea3]" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
@@ -84,9 +84,9 @@ function CitizenLogin({ onLogin }) {
           <p className="text-sm text-white/40 mt-2">Report road damage in your area</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 w-full">
           <div>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2 block">Your Name</label>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2.5 block">Your Name</label>
             <input
               type="text"
               value={name}
@@ -98,7 +98,7 @@ function CitizenLogin({ onLogin }) {
           </div>
 
           <div>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2 block">Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2.5 block">Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
             <input
               type="password"
               value={password}
@@ -115,7 +115,7 @@ function CitizenLogin({ onLogin }) {
           <motion.button
             type="submit"
             disabled={!name.trim() || loading}
-            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 ${
+            className={`w-full py-4 mt-2 rounded-2xl font-bold text-base flex items-center justify-center gap-2 ${
               name.trim() ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] shadow-lg shadow-[#4edea3]/20' : 'bg-white/[0.04] text-white/20'
             }`}
             whileTap={name.trim() ? { scale: 0.98 } : {}}
