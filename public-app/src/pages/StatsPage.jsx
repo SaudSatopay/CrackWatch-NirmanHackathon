@@ -104,16 +104,16 @@ export default function StatsPage() {
         <p className="text-[12px] text-white/40 mt-1">Public accountability & transparency</p>
       </div>
 
-      <div className="px-5 pb-8 space-y-4">
+      <div className="px-5 pb-8 space-y-6">
         {/* Performance Score */}
         <motion.div
-          className="bg-white/[0.03] rounded-xl p-5 flex flex-col items-center"
+          className="bg-white/[0.03] rounded-2xl p-5 flex flex-col items-center border border-white/[0.04]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
           <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-4">Government Performance</p>
-          <Ring score={stats.performance_score} size={120} />
+          <Ring score={stats.performance_score} size={110} />
           <p className="text-[12px] text-white/40 mt-4 font-medium">
             {stats.performance_score > 70 ? '✓ Performing above average' : stats.performance_score > 40 ? '⚠ Needs improvement' : '✕ Critical — action needed'}
           </p>
@@ -129,7 +129,7 @@ export default function StatsPage() {
           ].map((s, i) => (
             <motion.div
               key={s.label}
-              className="bg-white/[0.03] rounded-xl p-4"
+              className="bg-white/[0.03] rounded-xl p-4 border border-white/[0.04]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: s.delay }}
@@ -149,7 +149,7 @@ export default function StatsPage() {
 
         {/* Fix Rate */}
         <motion.div
-          className="bg-white/[0.03] rounded-xl p-4"
+          className="bg-white/[0.03] rounded-xl p-5 border border-white/[0.04]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
@@ -167,7 +167,7 @@ export default function StatsPage() {
 
         {/* Breakdown bars */}
         <motion.div
-          className="bg-white/[0.03] rounded-2xl p-5 space-y-4"
+          className="bg-white/[0.03] rounded-2xl p-5 space-y-4 border border-white/[0.04]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -207,9 +207,9 @@ export default function StatsPage() {
         </motion.div>
 
         {/* Footer */}
-        <div className="text-center pt-2 pb-4">
+        <div className="text-center pt-4 pb-6">
           <p className="text-[10px] text-white/15">Data is public. Government is accountable.</p>
-          <p className="text-[10px] text-[#4edea3]/30 font-bold mt-0.5">CRACKWATCH — Smart Infrastructure for All</p>
+          <p className="text-[10px] text-[#4edea3]/30 font-bold mt-1">CRACKWATCH — Smart Infrastructure for All</p>
         </div>
       </div>
     </div>

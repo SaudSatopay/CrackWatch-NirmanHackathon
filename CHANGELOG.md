@@ -5,6 +5,14 @@
 
 ---
 
+## v3.3.6 — De-clutter Stats page (more breathing room + visual separation)
+- Section spacing increased: space-y-4 → space-y-6
+- Added subtle borders (border-white/[0.04]) to all cards for clearer visual separation
+- Performance ring: size 120 → 110 (easier fit, less visual pressure)
+- Footer padding expanded (pt-2/pb-4 → pt-4/pb-6)
+- Scroll already worked — spacing was the real problem
+- Standardized card rounding: Performance card rounded-xl → rounded-2xl to match Breakdown
+
 ## v3.3.5 — Center CRACKWATCH logo on Map page
 - MapPage header restructured: logo centered horizontally, LIVE badge absolutely positioned top-right
 - Was left-aligned and getting clipped by the phone frame's rounded corner
