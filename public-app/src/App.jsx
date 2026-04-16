@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User, LogOut, Video } from 'lucide-react';
+import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User, LogOut, Video, Navigation } from 'lucide-react';
 import MapPage from './pages/MapPage';
 import ReportPage from './pages/ReportPage';
 import StatsPage from './pages/StatsPage';
 import LiveScanPage from './pages/LiveScanPage';
+import NavigatePage from './pages/NavigatePage';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const tabs = [
   { id: 'map', label: 'Map', icon: MapPin },
+  { id: 'navigate', label: 'Navigate', icon: Navigation },
   { id: 'report', label: 'Report', icon: Camera },
-  { id: 'live', label: 'Live', icon: Video },
   { id: 'stats', label: 'Stats', icon: BarChart3 },
   { id: 'logout', label: 'Exit', icon: LogOut },
 ];
@@ -117,6 +118,11 @@ export default function App() {
           {activeTab === 'map' && (
             <motion.div key="map" className="h-full" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
               <MapPage userName={user.name} />
+            </motion.div>
+          )}
+          {activeTab === 'navigate' && (
+            <motion.div key="navigate" className="h-full" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+              <NavigatePage />
             </motion.div>
           )}
           {activeTab === 'report' && (
