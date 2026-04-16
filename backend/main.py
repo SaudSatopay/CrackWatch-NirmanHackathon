@@ -326,6 +326,7 @@ async def detect_video(
     file: UploadFile = File(...),
     confidence: float = Form(default=0.25),
     frame_interval: int = Form(default=30),
+    sector: str = Form(default="all"),
 ):
     """
     Upload a video → extract frames at intervals → run AI on each frame.
@@ -372,7 +373,7 @@ async def detect_video(
                 rgb = _cv2.cvtColor(frame, _cv2.COLOR_BGR2RGB)
                 pil_img = _PILImage.fromarray(rgb)
 
-                result = detector.detect(pil_img, confidence)
+                result = detector.detect(pil_img, confidence, sector)
                 scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
                 ranked = rank_priorities(scored)
 
@@ -424,6 +425,7 @@ async def detect_video(
 async def detect_single_frame(
     frame_data: str = Form(...),
     confidence: float = Form(default=0.25),
+    sector: str = Form(default="all"),
 ):
     """
     Live feed: receive a single base64-encoded frame, return detections.
@@ -445,7 +447,7 @@ async def detect_single_frame(
 
     start_time = time.time()
     detector = get_detector()
-    result = detector.detect(pil_img, confidence)
+    result = detector.detect(pil_img, confidence, sector)
     scored = compute_severity(result["detections"], result["image_width"], result["image_height"])
     ranked = rank_priorities(scored)
     inference_time = round((time.time() - start_time) * 1000, 1)

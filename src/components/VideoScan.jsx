@@ -69,7 +69,7 @@ function FrameViewer({ frames, currentIndex, setCurrentIndex }) {
   );
 }
 
-function LiveFeed() {
+function LiveFeed({ sector = "all" }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);
@@ -122,6 +122,7 @@ function LiveFeed() {
         const fd = new FormData();
         fd.append("frame_data", frameData);
         fd.append("confidence", "0.25");
+        fd.append("sector", sector);
 
         const res = await fetch(`${API_URL}/detect/frame`, { method: "POST", body: fd });
         if (res.ok) {
@@ -245,8 +246,17 @@ function LiveFeed() {
   );
 }
 
+const SECTORS = [
+  { id: "road", emoji: "🛣️", label: "Road & Highway", desc: "Potholes, cracks, surface damage", models: "YOLOv8s-RDD + CV" },
+  { id: "building", emoji: "🏢", label: "Building", desc: "Wall cracks, concrete, spalling", models: "CrackSeg + CV" },
+  { id: "pipeline", emoji: "🔧", label: "Pipeline", desc: "Leaks, corrosion, pipe breaks", models: "OpenCV" },
+  { id: "bridge", emoji: "🌉", label: "Bridge & Flyover", desc: "Structural + road damage", models: "All models" },
+  { id: "all", emoji: "🔍", label: "Full Scan", desc: "Run all AI models", models: "3 models" },
+];
+
 export default function VideoScan() {
-  const [mode, setMode] = useState("video"); // "video" | "live"
+  const [sector, setSector] = useState(null);
+  const [mode, setMode] = useState("video");
   const [videoFile, setVideoFile] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState("");
@@ -266,6 +276,7 @@ export default function VideoScan() {
     fd.append("file", file);
     fd.append("confidence", "0.25");
     fd.append("frame_interval", "30");
+    fd.append("sector", sector || "all");
 
     try {
       setProgress("Extracting frames & running AI detection...");
@@ -281,8 +292,53 @@ export default function VideoScan() {
     setProcessing(false);
   };
 
+  // Sector selection screen
+  if (!sector) {
+    return (
+      <motion.div className="space-y-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div>
+          <h3 className="text-lg font-extrabold text-white mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            What are you scanning?
+          </h3>
+          <p className="text-sm text-zinc-500 mb-5">Select infrastructure type for video/live detection</p>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            {SECTORS.map((s, i) => (
+              <motion.button
+                key={s.id}
+                onClick={() => setSector(s.id)}
+                className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all text-left group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="text-2xl block mb-2">{s.emoji}</span>
+                <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{s.label}</h4>
+                <p className="text-[10px] text-zinc-500 mt-1">{s.desc}</p>
+                <p className="text-[9px] text-zinc-600 mt-2 font-mono">{s.models}</p>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {/* Sector badge + change */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+            {SECTORS.find(s => s.id === sector)?.emoji} {SECTORS.find(s => s.id === sector)?.label}
+          </span>
+          <span className="text-xs text-zinc-600">sector</span>
+        </div>
+        <button onClick={() => { setSector(null); setResult(null); }}
+          className="text-xs text-zinc-500 hover:text-zinc-300 underline">Change</button>
+      </div>
+
       {/* Mode toggle */}
       <div className="flex gap-2 p-1 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
         {[
@@ -378,7 +434,7 @@ export default function VideoScan() {
           )}
         </div>
       ) : (
-        <LiveFeed />
+        <LiveFeed sector={sector} />
       )}
     </motion.div>
   );
