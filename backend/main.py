@@ -850,6 +850,55 @@ async def seed_demo_gamification():
     return {"seeded": len(demo), "message": "Demo gamification data loaded!"}
 
 
+@app.post("/admin/reports/seed-demo")
+async def seed_demo_reports():
+    """Seed demo citizen reports for presentation — same data visible on govt + public apps."""
+    demo = [
+        ("RPT-001", 19.0330, 73.0297, "Ghodbunder Road, Thane",        "Pothole",           82, "submitted",    23, 3, "Rahul M.",  "Massive pothole near bus stop, bikes at risk",                      "2026-04-13T09:42:00Z", 4500, "Hot mix asphalt patching"),
+        ("RPT-002", 19.0176, 73.0596, "Panvel Station Road",           "Alligator Crack",   65, "in_progress", 12, 2, "Priya S.",  "Road surface breaking apart near railway crossing",                 "2026-04-12T14:07:00Z", 3200, "Mill and overlay"),
+        ("RPT-003", 19.0450, 73.0200, "Mumbai-Pune Expressway KM 42",  "Pothole",           91, "submitted",   47, 5, "Amit K.",   "Multiple deep potholes, caused 2 accidents last week",              "2026-04-11T08:23:00Z", 8500, "Deep patching + sealant"),
+        ("RPT-004", 19.0280, 73.0450, "Amity University Road",         "Transverse Crack",  28, "fixed",        5, 1, "Saud V.",   "Minor crack near university gate",                                  "2026-04-10T17:50:00Z",  800, "Crack sealing"),
+        ("RPT-005", 19.0550, 73.0100, "Kalamboli Flyover",             "Pothole",           73, "acknowledged",18, 2, "Neha D.",   "Pothole on flyover causing traffic slowdown",                       "2026-04-09T11:30:00Z", 5200, "Hot mix patching"),
+        ("RPT-006", 19.0100, 73.0700, "Old Panvel Bridge",             "Alligator Crack",   87, "submitted",   34, 4, "Vikram T.", "Bridge surface severely cracked, structural concern",               "2026-04-08T06:15:00Z", 9800, "Full-depth reconstruction"),
+        ("RPT-007", 19.0380, 73.0350, "Kharghar Sector 12",            "Surface Spalling",  45, "in_progress",  8, 1, "Anjali R.", "Concrete surface peeling off on main road",                         "2026-04-13T20:00:00Z", 1800, "Resurfacing"),
+        ("RPT-008", 19.0600, 73.0050, "Belapur CBD",                   "Longitudinal Crack",38, "fixed",        3, 1, "Kiran P.",  "Long crack along road, was fixed last week",                        "2026-04-07T15:45:00Z",  950, "Crack sealing"),
+    ]
+
+    existing_ids = {r["id"] for r in citizen_reports}
+    seeded = 0
+    for rid, lat, lng, loc_name, dtype, severity, status, upvotes, defects, reporter, desc, ts, cost, method in demo:
+        if rid in existing_ids:
+            continue
+        citizen_reports.append({
+            "id": rid,
+            "timestamp": ts,
+            "reporter": reporter,
+            "description": desc,
+            "location": {"latitude": lat, "longitude": lng, "name": loc_name},
+            "image_filename": "",
+            "annotated_image": "",
+            "detections": [{
+                "display_name": dtype,
+                "class_name": dtype.lower().replace(" ", "_"),
+                "severity": severity,
+                "confidence": 0.92,
+                "cost": {"cost_estimated": cost, "repair_method": method},
+            }],
+            "stats": {"avg_severity": severity, "total_defects": defects, "critical": 1 if severity >= 70 else 0, "warning": 1 if 40 <= severity < 70 else 0, "minor": 1 if severity < 40 else 0},
+            "inference_time_ms": 0,
+            "status": status,
+            "status_history": [{"status": status, "time": ts, "note": "Demo seeded report"}],
+            "assigned_to": None,
+            "fix_date": None,
+            "upvotes": upvotes,
+            "trust_score": 95,
+            "fraud_check": {"combined_trust_score": 95, "verdict": "trusted", "action": "auto_approve", "flags": []},
+        })
+        seeded += 1
+
+    return {"seeded": seeded, "total_reports": len(citizen_reports), "message": f"Seeded {seeded} demo reports"}
+
+
 @app.get("/gamification/achievements")
 async def all_achievements():
     """List all available achievements."""

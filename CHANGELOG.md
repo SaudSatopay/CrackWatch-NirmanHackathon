@@ -5,6 +5,13 @@
 
 ---
 
+## v3.2.1 — Unified demo data between govt + public apps
+- New backend endpoint: POST /admin/reports/seed-demo — seeds 8 demo citizen reports
+- Removed hardcoded DEMO array from public-app/src/pages/MapPage.jsx
+- Public app now replaces state with API data (no longer appends to local demos)
+- Govt dashboard and public app now show identical report counts from single source of truth
+- Seed after backend restart: curl -k -X POST https://HOST:8000/admin/reports/seed-demo
+
 ## v3.2.0 — Desktop phone-frame layout + UI polish
 - Public PWA now renders inside a centered 420×screen phone frame on desktop (rounded corners, border, shadow); unchanged full-screen on phones
 - Report page sector picker: centered vertically, square cards, larger emojis

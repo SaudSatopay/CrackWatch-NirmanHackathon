@@ -21,17 +21,6 @@ function severityColor(s) {
   return '#69db7c';
 }
 
-const DEMO = [
-  { id: 'RPT-001', latitude: 19.0330, longitude: 73.0297, location_name: 'Ghodbunder Road, Thane', damage_type: 'Pothole', severity: 82, status: 'submitted', upvotes: 23, defect_count: 3, reporter: 'Rahul M.', description: 'Massive pothole near bus stop, bikes at risk', timestamp: '2026-04-13T09:42:00Z' },
-  { id: 'RPT-002', latitude: 19.0176, longitude: 73.0596, location_name: 'Panvel Station Road', damage_type: 'Alligator Crack', severity: 65, status: 'in_progress', upvotes: 12, defect_count: 2, reporter: 'Priya S.', description: 'Road surface breaking apart near railway crossing', timestamp: '2026-04-12T14:07:00Z' },
-  { id: 'RPT-003', latitude: 19.0450, longitude: 73.0200, location_name: 'Mumbai-Pune Expressway KM 42', damage_type: 'Pothole', severity: 91, status: 'submitted', upvotes: 47, defect_count: 5, reporter: 'Amit K.', description: 'Multiple deep potholes, caused 2 accidents last week', timestamp: '2026-04-11T08:23:00Z' },
-  { id: 'RPT-004', latitude: 19.0280, longitude: 73.0450, location_name: 'Amity University Road', damage_type: 'Transverse Crack', severity: 28, status: 'fixed', upvotes: 5, defect_count: 1, reporter: 'Saud V.', description: 'Minor crack near university gate', timestamp: '2026-04-10T17:50:00Z' },
-  { id: 'RPT-005', latitude: 19.0550, longitude: 73.0100, location_name: 'Kalamboli Flyover', damage_type: 'Pothole', severity: 73, status: 'acknowledged', upvotes: 18, defect_count: 2, reporter: 'Neha D.', description: 'Pothole on flyover causing traffic slowdown', timestamp: '2026-04-09T11:30:00Z' },
-  { id: 'RPT-006', latitude: 19.0100, longitude: 73.0700, location_name: 'Old Panvel Bridge', damage_type: 'Alligator Crack', severity: 87, status: 'submitted', upvotes: 34, defect_count: 4, reporter: 'Vikram T.', description: 'Bridge surface severely cracked, structural concern', timestamp: '2026-04-08T06:15:00Z' },
-  { id: 'RPT-007', latitude: 19.0380, longitude: 73.0350, location_name: 'Kharghar Sector 12', damage_type: 'Surface Spalling', severity: 45, status: 'in_progress', upvotes: 8, defect_count: 1, reporter: 'Anjali R.', description: 'Concrete surface peeling off on main road', timestamp: '2026-04-13T20:00:00Z' },
-  { id: 'RPT-008', latitude: 19.0600, longitude: 73.0050, location_name: 'Belapur CBD', damage_type: 'Longitudinal Crack', severity: 38, status: 'fixed', upvotes: 3, defect_count: 1, reporter: 'Kiran P.', description: 'Long crack along road, was fixed last week', timestamp: '2026-04-07T15:45:00Z' },
-];
-
 function FlyTo({ center }) {
   const map = useMap();
   useEffect(() => { if (center) map.flyTo(center, 15, { duration: 0.8 }); }, [center]);
@@ -46,7 +35,7 @@ function MapClickHandler({ onMapClick }) {
 }
 
 export default function MapPage() {
-  const [reports, setReports] = useState(DEMO);
+  const [reports, setReports] = useState([]);
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState('all');
   const [flyTo, setFlyTo] = useState(null);
@@ -60,7 +49,7 @@ export default function MapPage() {
 
   useEffect(() => {
     fetch(`${API_URL}/public/reports/map/detail`).then(r => r.json()).then(d => {
-      if (d.reports?.length) setReports(prev => [...prev, ...d.reports]);
+      if (d.reports?.length) setReports(d.reports);
     }).catch(() => {});
   }, []);
 
