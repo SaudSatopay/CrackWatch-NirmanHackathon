@@ -5,6 +5,12 @@
 
 ---
 
+## v3.3.14 — Login page: tone down spacing (v3.3.13 was too spacey)
+- Name wrapper marginBottom: 32 → 24
+- Password wrapper marginBottom: 56 → 28 (the 56 gap before Get Started looked abnormal)
+- Label marginBottom: 14 → 10
+- Consistent visual rhythm between fields
+
 ## v3.3.13 — Login page: force spacing via inline styles
 - Tailwind mb-6/mb-10 utilities were getting overridden or not reflecting visually
 - Switched to inline `style={{ marginBottom: 32/56 }}` for guaranteed pixel-exact spacing

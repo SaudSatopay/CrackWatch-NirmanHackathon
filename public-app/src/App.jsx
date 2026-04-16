@@ -85,8 +85,8 @@ function CitizenLogin({ onLogin }) {
         </div>
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col">
-          <div style={{ marginBottom: 32 }}>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold block" style={{ marginBottom: 14 }}>Your Name</label>
+          <div style={{ marginBottom: 24 }}>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold block" style={{ marginBottom: 10 }}>Your Name</label>
             <input
               type="text"
               value={name}
@@ -97,8 +97,8 @@ function CitizenLogin({ onLogin }) {
             />
           </div>
 
-          <div style={{ marginBottom: 56 }}>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold block" style={{ marginBottom: 14 }}>Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
+          <div style={{ marginBottom: 28 }}>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold block" style={{ marginBottom: 10 }}>Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
             <input
               type="password"
               value={password}
