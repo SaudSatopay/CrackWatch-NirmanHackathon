@@ -5,6 +5,11 @@
 
 ---
 
+## v1.6.2 — Tap-to-report on government map too
+- Same quick report feature now on govt Reports Map
+- Click anywhere → sector → photo → submit
+- Auto-refreshes report list after submission
+
 ## v1.6.1 — Tap-to-report from map (debug feature)
 - Tap anywhere on the map to drop a pin and report damage at that location
 - Quick report bottom sheet: sector picker → photo → description → submit
