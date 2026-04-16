@@ -5,6 +5,10 @@
 
 ---
 
+## v3.3.5 — Center CRACKWATCH logo on Map page
+- MapPage header restructured: logo centered horizontally, LIVE badge absolutely positioned top-right
+- Was left-aligned and getting clipped by the phone frame's rounded corner
+
 ## v3.3.4 — Center all simple page headers in public app
 - GamificationPage: "🏆 Pothole Hunter" title + subtitle centered
 - StatsPage: "Government Dashboard" title + subtitle centered

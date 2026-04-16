@@ -102,13 +102,11 @@ export default function MapPage() {
     <div className="h-full flex flex-col relative">
       {/* Header bar */}
       <div className="absolute top-0 left-0 right-0 z-[1000] px-4 pt-3 pb-2 bg-gradient-to-b from-[#131315] via-[#131315]/90 to-transparent">
-        <div className="flex items-center justify-between mb-2.5">
-          <div>
-            <h1 className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
-              CRACK<span className="text-[#4edea3]">WATCH</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#4edea3]/10 border border-[#4edea3]/20">
+        <div className="relative flex items-center mb-2.5">
+          <h1 className="text-lg font-bold text-white tracking-tight w-full text-center" style={{ fontFamily: 'Space Grotesk' }}>
+            CRACK<span className="text-[#4edea3]">WATCH</span>
+          </h1>
+          <div className="absolute right-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#4edea3]/10 border border-[#4edea3]/20">
             <div className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse" />
             <span className="text-[10px] text-[#4edea3] font-bold">LIVE</span>
           </div>
