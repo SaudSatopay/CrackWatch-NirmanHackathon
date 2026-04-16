@@ -9,6 +9,7 @@ import RecentScans from "@/components/RecentScans";
 import HeroPage from "@/components/HeroPage";
 import RepairPlan from "@/components/RepairPlan";
 import GovtMap from "@/components/GovtMap";
+import VideoScan from "@/components/VideoScan";
 import LoginPage from "@/components/LoginPage";
 import SettingsPage from "@/components/SettingsPage";
 import {
@@ -24,6 +25,7 @@ function Header({ activeTab, user, onLogout }) {
   const titles = {
     dashboard: { title: "Command Center", sub: "Infrastructure monitoring & damage intelligence" },
     scan: { title: "New Scan", sub: "Upload & analyze structural damage" },
+    video: { title: "Video / Live Feed", sub: "Analyze video footage & real-time camera" },
     "govt-map": { title: "Reports Map", sub: "Citizen reports & admin controls" },
     "repair-plan": { title: "Repair Plan", sub: "Priority actions & cost estimation" },
     analytics: { title: "Analytics", sub: "Damage trends & pattern analysis" },
@@ -171,6 +173,11 @@ function Dashboard({ activeTab, setActiveTab, user, onLogout }) {
             {activeTab === "scan" && (
               <motion.div key="scan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <ScanZone />
+              </motion.div>
+            )}
+            {activeTab === "video" && (
+              <motion.div key="video" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <VideoScan />
               </motion.div>
             )}
             {activeTab === "analytics" && (
