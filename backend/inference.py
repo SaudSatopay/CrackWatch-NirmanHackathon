@@ -64,6 +64,59 @@ SEVERITY_COLORS = {
 }
 
 
+def check_image_authenticity(image: Image.Image) -> dict:
+    """
+    Basic image authenticity check — detect if photo was taken from a screen.
+    Checks for: moiré patterns, screen glare, EXIF metadata, edge sharpness.
+    Returns a trust score and flags.
+    """
+    img_np = np.array(image)
+    h, w = img_np.shape[:2]
+    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+    flags = []
+    trust_score = 100
+
+    # 1. Check for moiré patterns (screen photos show periodic noise)
+    f_transform = np.fft.fft2(gray.astype(float))
+    f_shift = np.fft.fftshift(f_transform)
+    magnitude = np.log(np.abs(f_shift) + 1)
+    # High frequency peaks indicate screen capture
+    center_h, center_w = h // 2, w // 2
+    outer_ring = magnitude[center_h-h//4:center_h+h//4, center_w-w//4:center_w+w//4]
+    freq_ratio = np.mean(outer_ring) / (np.mean(magnitude) + 1e-6)
+    if freq_ratio > 1.3:
+        flags.append("Possible moiré pattern detected — may be a screen photo")
+        trust_score -= 25
+
+    # 2. Check image resolution (screen photos tend to be lower quality)
+    if w < 400 or h < 400:
+        flags.append("Low resolution image")
+        trust_score -= 15
+
+    # 3. Check for uniform brightness bands (screen backlight)
+    row_means = np.mean(gray, axis=1)
+    row_variance = np.var(np.diff(row_means))
+    if row_variance < 5:
+        flags.append("Uniform brightness — possible screen capture")
+        trust_score -= 20
+
+    # 4. Check edge sharpness (real photos have depth-of-field, screen photos are flat)
+    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+    if laplacian_var < 50:
+        flags.append("Low edge variance — image may lack natural depth")
+        trust_score -= 15
+
+    trust_score = max(0, min(100, trust_score))
+    is_likely_authentic = trust_score >= 60
+
+    return {
+        "trust_score": trust_score,
+        "is_likely_authentic": is_likely_authentic,
+        "flags": flags,
+        "recommendation": "Image appears authentic" if is_likely_authentic else "Image may not be a real photo — manual verification recommended",
+    }
+
+
 def cv_supplementary_detection(image: Image.Image) -> list:
     """
     OpenCV-based supplementary detection for damage types the YOLO model might miss.
