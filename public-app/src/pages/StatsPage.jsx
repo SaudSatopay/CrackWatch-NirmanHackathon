@@ -97,17 +97,17 @@ export default function StatsPage() {
   return (
     <div className="h-full overflow-y-auto">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
+      <div className="px-5 pt-5 pb-3">
+        <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
           Government Dashboard
         </h1>
-        <p className="text-[11px] text-white/40 mt-0.5">Public accountability & transparency</p>
+        <p className="text-[12px] text-white/40 mt-1">Public accountability & transparency</p>
       </div>
 
-      <div className="px-4 pb-8 space-y-4">
+      <div className="px-5 pb-8 space-y-4">
         {/* Performance Score */}
         <motion.div
-          className="bg-white/[0.03] rounded-2xl p-5 flex flex-col items-center"
+          className="bg-white/[0.03] rounded-xl p-5 flex flex-col items-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -120,7 +120,7 @@ export default function StatsPage() {
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {[
             { label: 'Total Reports', value: stats.total_reports, icon: BarChart3, color: '#e5e1e4', delay: 0.15 },
             { label: 'Fixed', value: stats.fixed, icon: CheckCircle, color: '#69db7c', delay: 0.2 },
@@ -129,16 +129,18 @@ export default function StatsPage() {
           ].map((s, i) => (
             <motion.div
               key={s.label}
-              className="bg-white/[0.03] rounded-xl p-3"
+              className="bg-white/[0.03] rounded-xl p-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: s.delay }}
             >
-              <div className="flex items-center gap-1.5 mb-2">
-                <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
-                <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">{s.label}</span>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${s.color}12` }}>
+                  <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
+                </div>
+                <span className="text-[10px] text-white/30 uppercase tracking-wider font-semibold">{s.label}</span>
               </div>
-              <div className="text-xl font-bold tracking-tight" style={{ color: s.color, fontFamily: 'Space Grotesk' }}>
+              <div className="text-2xl font-bold tracking-tight" style={{ color: s.color, fontFamily: 'Space Grotesk' }}>
                 <AnimNum value={s.value} delay={s.delay * 1000} />
               </div>
             </motion.div>
@@ -189,7 +191,7 @@ export default function StatsPage() {
 
         {/* Cost */}
         <motion.div
-          className="bg-gradient-to-br from-[#ffa94d]/[0.06] to-transparent rounded-xl p-4 border border-[#ffa94d]/10"
+          className="bg-gradient-to-br from-[#ffa94d]/[0.06] to-transparent rounded-xl p-5 border border-[#ffa94d]/10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}

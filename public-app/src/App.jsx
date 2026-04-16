@@ -39,52 +39,54 @@ function CitizenLogin({ onLogin }) {
   };
 
   return (
-    <div className="h-[100dvh] bg-[#131315] flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="h-[100dvh] bg-[#131315] flex flex-col px-8 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] right-[-10%] w-[300px] h-[300px] bg-[#4edea3]/[0.04] rounded-full blur-[80px]" />
+        <div className="absolute top-[10%] right-[-10%] w-[300px] h-[300px] bg-[#4edea3]/[0.04] rounded-full blur-[80px]" />
       </div>
 
-      <motion.div className="relative z-10 w-full max-w-sm" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-xl bg-[#4edea3]/10 border border-[#4edea3]/20 flex items-center justify-center mx-auto mb-4">
-            <ScanLine className="w-7 h-7 text-[#4edea3]" />
+      {/* Push content to center vertically */}
+      <div className="flex-1" />
+
+      <motion.div className="relative z-10 w-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 rounded-2xl bg-[#4edea3]/10 border border-[#4edea3]/20 flex items-center justify-center mx-auto mb-5">
+            <ScanLine className="w-8 h-8 text-[#4edea3]" />
           </div>
-          <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
+          <h1 className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
             CRACK<span className="text-[#4edea3]">WATCH</span>
           </h1>
-          <p className="text-xs text-white/40 mt-1">Report road damage in your area</p>
+          <p className="text-sm text-white/40 mt-2">Report road damage in your area</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="text-[10px] text-white/30 uppercase tracking-[0.15em] font-bold mb-1.5 block">Your Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-              <input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Enter your name"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.04] text-white text-sm outline-none placeholder-white/15 focus:ring-1 focus:ring-[#4edea3]/30"
-                autoFocus
-              />
-            </div>
+            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold mb-2 block">Your Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Enter your name"
+              className="w-full px-5 py-4 rounded-2xl bg-white/[0.05] text-white text-base outline-none placeholder-white/20 focus:ring-2 focus:ring-[#4edea3]/30 border border-white/[0.06]"
+              autoFocus
+            />
           </div>
 
           <motion.button
             type="submit"
             disabled={!name.trim() || loading}
-            className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 ${
-              name.trim() ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113]' : 'bg-white/[0.04] text-white/20'
+            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 ${
+              name.trim() ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] shadow-lg shadow-[#4edea3]/20' : 'bg-white/[0.04] text-white/20'
             }`}
             whileTap={name.trim() ? { scale: 0.98 } : {}}
           >
-            {loading ? <div className="w-5 h-5 border-2 border-[#002113] border-t-transparent rounded-full animate-spin" /> : <>Get Started <ArrowRight className="w-4 h-4" /></>}
+            {loading ? <div className="w-5 h-5 border-2 border-[#002113] border-t-transparent rounded-full animate-spin" /> : <>Get Started <ArrowRight className="w-5 h-5" /></>}
           </motion.button>
         </form>
-
-        <p className="text-center text-[10px] text-white/15 mt-6">No account needed · Your reports help fix roads</p>
       </motion.div>
+
+      <div className="flex-1" />
+
+      <p className="text-center text-[11px] text-white/15 pb-8">No account needed · Your reports help fix roads</p>
     </div>
   );
 }
