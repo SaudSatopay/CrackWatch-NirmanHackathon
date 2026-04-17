@@ -5,6 +5,12 @@
 
 ---
 
+## v3.6.3 — Comprehensive README for GitHub
+- Replaced Vite template README with a complete project documentation
+- Includes: 30-second pitch, feature table by platform, architecture diagram, complete tech stack, full API reference, setup instructions, demo credentials, WhatsApp bot setup, key design decisions with expandable sections, performance metrics, roadmap, security notes
+- Hero banner with badges (version, license, Python, React, FastAPI, NIRMAN, Problem #4)
+- One-line pitch prominently displayed: "Detecting a pothole doesn't fix it. A watched government does."
+
 ## v3.6.2 — Wall of Shame: region-based contractor mapping
 - Added 4 new mock contractors: South Mumbai Roadworks, Western Suburbs Builders, Eastern Suburbs Contractor, CIDCO Infrastructure
 - Expanded area→contractor keyword mapping: 30+ Mumbai / Navi Mumbai location keywords (Marine Drive, Bandra, Andheri, Chembur, Vashi, Kharghar, Panvel, etc.)
