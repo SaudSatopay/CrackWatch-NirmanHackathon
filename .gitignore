@@ -30,3 +30,9 @@ dist-ssr
 
 # Backend shared runtime store (ephemeral, regenerates on startup)
 backend/shared_store.json
+
+# Allow example env templates (real .env stays ignored above)
+!.env.example
+
+# Local TLS certs (machine-specific, never commit)
+certs/

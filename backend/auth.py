@@ -3,12 +3,17 @@ Authentication module for CRACKWATCH.
 JWT-based auth with role-based access (government vs citizen).
 """
 
+import os
 import jwt
 import time
+import secrets
 from datetime import datetime, timezone
 from fastapi import HTTPException, Depends, Request
 
-SECRET_KEY = "***REMOVED***"
+# JWT signing secret. Provide JWT_SECRET_KEY via environment in any real
+# deployment. If unset, a random per-process secret is generated so that no
+# fixed secret is ever committed to source control (tokens reset on restart).
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or secrets.token_urlsafe(32)
 ALGORITHM = "HS256"
 TOKEN_EXPIRY = 86400  # 24 hours
 

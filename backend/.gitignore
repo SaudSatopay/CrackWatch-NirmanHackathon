@@ -3,3 +3,8 @@ uploads/
 __pycache__/
 *.pyc
 yolov8n.pt
+
+# Runtime detection outputs (ephemeral)
+det*.json
+detect_result.json
+test_*.json

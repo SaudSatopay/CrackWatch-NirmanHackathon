@@ -16,8 +16,8 @@ from pathlib import Path
 
 MODEL_DIR = Path(__file__).parent / "model"
 
-# Roboflow API config
-ROBOFLOW_API_KEY = "***REMOVED***"
+# Roboflow API config. Set ROBOFLOW_API_KEY in the environment (see .env.example).
+ROBOFLOW_API_KEY = os.environ.get("ROBOFLOW_API_KEY", "")
 ROBOFLOW_MODEL_URL = "https://detect.roboflow.com/test-dataset-yjjjr-gpw9n/2"
 
 # Class name mapping for RDD2022 dataset
